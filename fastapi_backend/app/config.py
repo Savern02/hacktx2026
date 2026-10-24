@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: Set[str]
 
+    # Capital One Nessie (mock banking API)
+    NESSIE_API_KEY: str | None = None
+    NESSIE_BASE_URL: str = "https://api.nessieisreal.com"
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )

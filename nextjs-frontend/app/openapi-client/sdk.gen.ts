@@ -43,15 +43,8 @@ import type {
   UsersPatchUserData,
   UsersPatchUserResponses,
   UsersPatchUserErrors,
-  ReadItemData,
-  ReadItemResponses,
-  ReadItemErrors,
-  CreateItemData,
-  CreateItemResponses,
-  CreateItemErrors,
-  DeleteItemData,
-  DeleteItemResponses,
-  DeleteItemErrors,
+  GetBalanceData,
+  GetBalanceResponses,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -345,14 +338,14 @@ export const usersPatchUser = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Read Item
+ * Get Balance
  */
-export const readItem = <ThrowOnError extends boolean = false>(
-  options?: Options<ReadItemData, ThrowOnError>,
+export const getBalance = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBalanceData, ThrowOnError>,
 ) => {
   return (options?.client ?? client).get<
-    ReadItemResponses,
-    ReadItemErrors,
+    GetBalanceResponses,
+    unknown,
     ThrowOnError
   >({
     responseType: "json",
@@ -362,57 +355,7 @@ export const readItem = <ThrowOnError extends boolean = false>(
         type: "http",
       },
     ],
-    url: "/items/",
-    ...options,
-  });
-};
-
-/**
- * Create Item
- */
-export const createItem = <ThrowOnError extends boolean = false>(
-  options: Options<CreateItemData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
-    CreateItemResponses,
-    CreateItemErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        scheme: "bearer",
-        type: "http",
-      },
-    ],
-    url: "/items/",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-};
-
-/**
- * Delete Item
- */
-export const deleteItem = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteItemData, ThrowOnError>,
-) => {
-  return (options.client ?? client).delete<
-    DeleteItemResponses,
-    DeleteItemErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        scheme: "bearer",
-        type: "http",
-      },
-    ],
-    url: "/items/{item_id}",
+    url: "/users/me/balance",
     ...options,
   });
 };

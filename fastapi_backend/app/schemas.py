@@ -1,8 +1,8 @@
 import uuid
+from datetime import date
 
 from fastapi_users import schemas
 from pydantic import BaseModel
-from uuid import UUID
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
@@ -17,18 +17,14 @@ class UserUpdate(schemas.BaseUserUpdate):
     pass
 
 
-class ItemBase(BaseModel):
+class UpcomingBill(BaseModel):
     name: str
-    description: str | None = None
-    quantity: int | None = None
+    amount: float
+    due_date: date
 
 
-class ItemCreate(ItemBase):
-    pass
-
-
-class ItemRead(ItemBase):
-    id: UUID
-    user_id: UUID
-
-    model_config = {"from_attributes": True}
+class BalanceRead(BaseModel):
+    balance: float
+    upcoming_bills: list[UpcomingBill]
+    upcoming_bills_total: float
+    safe_to_spend: float
