@@ -3,7 +3,7 @@
   "version": "0.0.8",
   "private": true,
   "engines": {
-    "node": ">=26"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev --webpack",
@@ -51,7 +51,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^26.6.5",
+    "@types/node": "^24.19.2",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
