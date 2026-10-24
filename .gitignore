@@ -157,3 +157,5 @@ cython_debug/
 CLAUDE.local.md
 #Claude 
 .claude
+#agents skills 
+.agents

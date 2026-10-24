@@ -1,13 +1,15 @@
 #!/bin/bash
 
-if [ -f /.dockerenv ]; then
-    echo "Running in Docker"
-    fastapi dev app/main.py --host 0.0.0.0 --port 8000 --reload &
-    python watcher.py
+# Docker Desktop's WSL integration creates /.dockerenv on the host too,
+# so prefer a local .venv when one exists.
+if [ -f .venv/bin/activate ]; then
+    echo "Running locally with .venv"
+    source .venv/bin/activate
 else
-    echo "Running locally with uv"
-    uv run fastapi dev app/main.py --host 0.0.0.0 --port 8000 --reload &
-    uv run python watcher.py
+    echo "Running in Docker"
 fi
+
+fastapi dev app/main.py --host 0.0.0.0 --port 8000 --reload &
+python watcher.py
 
 wait

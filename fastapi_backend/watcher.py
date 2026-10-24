@@ -1,6 +1,7 @@
 import time
 import re
 import subprocess
+import sys
 import os
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -38,7 +39,7 @@ class MyHandler(FileSystemEventHandler):
         """Run mypy type checks and print output."""
         print("Running mypy type checks...")
         result = subprocess.run(
-            ["uv", "run", "mypy", "app"],
+            [sys.executable, "-m", "mypy", "app"],
             capture_output=True,
             text=True,
             check=False,
@@ -57,9 +58,7 @@ class MyHandler(FileSystemEventHandler):
         try:
             subprocess.run(
                 [
-                    "uv",
-                    "run",
-                    "python",
+                    sys.executable,
                     "-m",
                     "commands.generate_openapi_schema",
                 ],
