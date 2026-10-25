@@ -40,7 +40,23 @@ export function ProgramMatches() {
     setAsking(false);
   };
 
-  if (state.kind === "not-connected") return null; // the check-up above explains what to do
+  if (state.kind === "not-connected") {
+    return (
+      <section className="grid gap-2" aria-labelledby="matches-heading">
+        <h2
+          id="matches-heading"
+          className="flex items-center gap-2 text-lg font-semibold"
+        >
+          <Sparkles className="h-5 w-5" aria-hidden="true" />
+          Programs you may qualify for
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Connect your bank in Settings and Equa will look at your spending to
+          find programs you may qualify for.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section

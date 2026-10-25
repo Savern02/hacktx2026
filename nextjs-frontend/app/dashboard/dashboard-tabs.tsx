@@ -9,7 +9,6 @@ import {
 } from "@/components/dashboard/sidebar";
 import { EquaChat } from "@/components/dashboard/equa-chat";
 import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
-import { ProgramsNearYou } from "@/components/dashboard/programs-near-you";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { MoneyCheckup } from "@/components/dashboard/money-checkup";
 import { ProgramMatches } from "@/components/dashboard/program-matches";
@@ -63,7 +62,6 @@ function OverviewTab() {
     <div className="grid gap-6">
       <SafeToSpendRing />
       <MoneyCheckup />
-      <ProgramMatches />
     </div>
   );
 }
@@ -71,7 +69,6 @@ function OverviewTab() {
 function ProgramsTab() {
   return (
     <div className="grid gap-8">
-      <ProgramsNearYou />
       <section className="grid gap-4">
         <h2 className="text-lg font-semibold">Your applications</h2>
         <ul className="grid gap-3 md:grid-cols-2">
@@ -85,6 +82,7 @@ function ProgramsTab() {
           ))}
         </ul>
       </section>
+      <ProgramMatches />
     </div>
   );
 }
