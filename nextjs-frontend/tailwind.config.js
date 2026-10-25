@@ -19,6 +19,15 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        // Equa brand palette, weighted 60-30-10: blue base, white surfaces/text,
+        // yellow CTAs only. Teal = metadata/AI tags, red = alerts/destructive.
+        equa: {
+          blue: "#05299e",
+          white: "#ffffff",
+          yellow: "#e3b505",
+          teal: "#56a3a6",
+          red: "#823038",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
