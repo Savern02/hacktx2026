@@ -11,6 +11,7 @@ export async function register(prevState: unknown, formData: FormData) {
   const validatedFields = registerSchema.safeParse({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
+    zip_code: (formData.get("zip_code") as string) ?? "",
   });
 
   if (!validatedFields.success) {
@@ -19,12 +20,13 @@ export async function register(prevState: unknown, formData: FormData) {
     };
   }
 
-  const { email, password } = validatedFields.data;
+  const { email, password, zip_code } = validatedFields.data;
 
   const input = {
     body: {
       email,
       password,
+      zip_code,
     },
   };
   try {

@@ -8,11 +8,16 @@ readme = "README.md"
 dependencies = [
     "fastapi[standard]>=0.115.0,<0.116",
     "asyncpg>=0.31.0,<0.32",
-    "fastapi-users[sqlalchemy]>=13.0.0,<14",
+    "fastapi-users[sqlalchemy]>=15,<16",
     "pydantic>=2.12.0,<3",
     "pydantic-settings>=2.5.2,<3",
     "fastapi-mail>=1.4.1,<2",
-    "fastapi-pagination==0.13.3"
+    "fastapi-pagination==0.13.3",
+    "beautifulsoup4>=4.15.0,<5",
+    "pypdf>=6.19.0,<6.20",
+    "tldextract>=5.4.0,<6",
+    "pyyaml>=6.0.3,<7",
+    "snowflake-connector-python>=4.8.0,<4.9",
 ]
 
 [dependency-groups]

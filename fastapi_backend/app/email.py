@@ -31,7 +31,7 @@ async def send_reset_password_email(user: User, token: str):
     encoded_params = urllib.parse.urlencode(params)
     link = f"{base_url}{encoded_params}"
     message = MessageSchema(
-        subject="Password recovery",
+        subject="Reset your Equa password",
         recipients=[email],
         template_body={"username": email, "link": link},
         subtype=MessageType.html,

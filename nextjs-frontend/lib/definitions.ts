@@ -21,9 +21,17 @@ export const passwordResetConfirmSchema = z
     path: ["passwordConfirm"],
   });
 
+export const zipCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{5}(-\d{4})?$/, {
+    message: "Zip codes are 5 digits, like 78702.",
+  });
+
 export const registerSchema = z.object({
   password: passwordSchema,
   email: z.string().email({ message: "Invalid email address" }),
+  zip_code: zipCodeSchema,
 });
 
 export const loginSchema = z.object({
@@ -31,14 +39,16 @@ export const loginSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
 });
 
-export const itemSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  description: z.string().min(1, { message: "Description is required" }),
-  quantity: z
+export const profileSchema = z.object({
+  full_name: z
     .string()
-    .min(1, { message: "Quantity is required" })
-    .transform((val) => parseInt(val, 10)) // Convert to integer
-    .refine((val) => Number.isInteger(val) && val > 0, {
-      message: "Quantity must be a positive integer",
+    .trim()
+    .min(1, { message: "Equa needs a name to call you by." })
+    .max(100, {
+      message: "That name is a bit long. Try 100 characters or less.",
     }),
+  zip_code: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/, { message: "Zip codes are 5 digits, like 78702." }),
 });

@@ -43,15 +43,25 @@ import type {
   UsersPatchUserData,
   UsersPatchUserResponses,
   UsersPatchUserErrors,
-  ReadItemData,
-  ReadItemResponses,
-  ReadItemErrors,
-  CreateItemData,
-  CreateItemResponses,
-  CreateItemErrors,
-  DeleteItemData,
-  DeleteItemResponses,
-  DeleteItemErrors,
+  GetBalanceData,
+  GetBalanceResponses,
+  ConnectBankData,
+  ConnectBankResponses,
+  SendMessageData,
+  SendMessageResponses,
+  SendMessageErrors,
+  GetMyProgramsData,
+  GetMyProgramsResponses,
+  GetMyProgramsErrors,
+  ChangeMyLocationData,
+  ChangeMyLocationResponses,
+  ChangeMyLocationErrors,
+  GetMyFinancialHealthData,
+  GetMyFinancialHealthResponses,
+  GetMyFinancialHealthErrors,
+  GetMyProgramMatchesData,
+  GetMyProgramMatchesResponses,
+  GetMyProgramMatchesErrors,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -345,14 +355,14 @@ export const usersPatchUser = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Read Item
+ * Get Balance
  */
-export const readItem = <ThrowOnError extends boolean = false>(
-  options?: Options<ReadItemData, ThrowOnError>,
+export const getBalance = <ThrowOnError extends boolean = false>(
+  options?: Options<GetBalanceData, ThrowOnError>,
 ) => {
   return (options?.client ?? client).get<
-    ReadItemResponses,
-    ReadItemErrors,
+    GetBalanceResponses,
+    unknown,
     ThrowOnError
   >({
     responseType: "json",
@@ -362,20 +372,21 @@ export const readItem = <ThrowOnError extends boolean = false>(
         type: "http",
       },
     ],
-    url: "/items/",
+    url: "/users/me/balance",
     ...options,
   });
 };
 
 /**
- * Create Item
+ * Connect Bank
+ * Create a fresh Nessie customer + checking account for this user (replaces any old one).
  */
-export const createItem = <ThrowOnError extends boolean = false>(
-  options: Options<CreateItemData, ThrowOnError>,
+export const connectBank = <ThrowOnError extends boolean = false>(
+  options?: Options<ConnectBankData, ThrowOnError>,
 ) => {
-  return (options.client ?? client).post<
-    CreateItemResponses,
-    CreateItemErrors,
+  return (options?.client ?? client).post<
+    ConnectBankResponses,
+    unknown,
     ThrowOnError
   >({
     responseType: "json",
@@ -385,7 +396,30 @@ export const createItem = <ThrowOnError extends boolean = false>(
         type: "http",
       },
     ],
-    url: "/items/",
+    url: "/users/me/bank/connect",
+    ...options,
+  });
+};
+
+/**
+ * Send Message
+ */
+export const sendMessage = <ThrowOnError extends boolean = false>(
+  options: Options<SendMessageData, ThrowOnError>,
+) => {
+  return (options.client ?? client).post<
+    SendMessageResponses,
+    SendMessageErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/chat",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -395,14 +429,14 @@ export const createItem = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Delete Item
+ * Get My Programs
  */
-export const deleteItem = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteItemData, ThrowOnError>,
+export const getMyPrograms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyProgramsData, ThrowOnError>,
 ) => {
-  return (options.client ?? client).delete<
-    DeleteItemResponses,
-    DeleteItemErrors,
+  return (options?.client ?? client).get<
+    GetMyProgramsResponses,
+    GetMyProgramsErrors,
     ThrowOnError
   >({
     responseType: "json",
@@ -412,7 +446,81 @@ export const deleteItem = <ThrowOnError extends boolean = false>(
         type: "http",
       },
     ],
-    url: "/items/{item_id}",
+    url: "/programs/me",
+    ...options,
+  });
+};
+
+/**
+ * Change My Location
+ * 'Not right? Change city.' Pick one of the alternates; it's never auto-overwritten.
+ */
+export const changeMyLocation = <ThrowOnError extends boolean = false>(
+  options: Options<ChangeMyLocationData, ThrowOnError>,
+) => {
+  return (options.client ?? client).put<
+    ChangeMyLocationResponses,
+    ChangeMyLocationErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/programs/me/location",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get My Financial Health
+ */
+export const getMyFinancialHealth = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyFinancialHealthData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyFinancialHealthResponses,
+    GetMyFinancialHealthErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/health",
+    ...options,
+  });
+};
+
+/**
+ * Get My Program Matches
+ */
+export const getMyProgramMatches = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyProgramMatchesData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyProgramMatchesResponses,
+    GetMyProgramMatchesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/program-matches",
     ...options,
   });
 };

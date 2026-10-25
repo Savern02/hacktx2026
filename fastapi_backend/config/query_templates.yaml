@@ -1,0 +1,53 @@
+# Discovery search plans (docs/program-discovery-pipeline.md, Section 9).
+# Run in file order until the per-job cap. Placeholders come from the jurisdiction row:
+# {state_name} {state_code} {city_name} {county_name} {domain}
+state:
+  max_searches: 20
+  templates:
+    - { id: domain, q: "{state_name} state government official website", skip_if_domain_known: true }
+    - { id: snap, q: "{state_name} SNAP food benefits apply", parent_listing: "10.551" }
+    - { id: wic, q: "{state_name} WIC program apply", parent_listing: "10.557" }
+    - { id: medicaid, q: "{state_name} Medicaid apply", parent_listing: "93.778" }
+    - { id: chip, q: "{state_name} CHIP children's health insurance apply", parent_listing: "93.767" }
+    - { id: tanf, q: "{state_name} TANF cash assistance apply", parent_listing: "93.558" }
+    - { id: liheap, q: "{state_name} LIHEAP energy assistance apply", parent_listing: "93.568" }
+    - { id: unemployment, q: "{state_name} unemployment insurance benefits apply", parent_listing: "17.225" }
+    - { id: housing, q: "{state_name} rental assistance program", category: housing }
+    - { id: utilities, q: "{state_name} utility bill assistance program", category: utilities }
+    - { id: childcare, q: "{state_name} child care assistance program", category: childcare }
+    - { id: employment, q: "{state_name} job training assistance program", category: employment }
+    - { id: transportation, q: "{state_name} transportation assistance low income", category: transportation }
+    - { id: seniors, q: "{state_name} assistance programs for seniors", category: seniors }
+    - { id: disability, q: "{state_name} disability assistance programs", category: disability }
+    - { id: veterans, q: "{state_name} veterans benefits assistance", category: veterans }
+    - { id: legal_aid, q: "{state_name} free legal aid program", category: legal_aid }
+    - { id: internet, q: "{state_name} low income internet assistance", category: internet }
+    - { id: tax_relief, q: "{state_name} property tax relief program", category: tax_relief }
+    - { id: site_assist, q: "site:{domain} assistance program", requires_domain: true }
+city:
+  max_searches: 12
+  templates:
+    - { id: domain, q: "{city_name} {state_code} city government official website", skip_if_domain_known: true }
+    - { id: housing, q: "{city_name} {state_code} rent assistance program", category: housing }
+    - { id: utilities, q: "{city_name} {state_code} utility bill help", category: utilities }
+    - { id: food, q: "{city_name} {state_code} food assistance program", category: food }
+    - { id: childcare, q: "{city_name} {state_code} child care assistance", category: childcare }
+    - { id: employment, q: "{city_name} {state_code} workforce job training program", category: employment }
+    - { id: transportation, q: "{city_name} {state_code} reduced fare transit program", category: transportation }
+    - { id: seniors, q: "{city_name} {state_code} senior assistance programs", category: seniors }
+    - { id: healthcare, q: "{city_name} {state_code} free or low cost health care program", category: healthcare }
+    - { id: tax_relief, q: "{city_name} {state_code} property tax exemption assistance", category: tax_relief }
+    - { id: legal_aid, q: "{city_name} {state_code} free legal aid", category: legal_aid }
+    - { id: site_assist, q: "site:{domain} assistance program", requires_domain: true }
+county:
+  max_searches: 12
+  templates:
+    - { id: domain, q: "{county_name} {state_code} county government official website", skip_if_domain_known: true }
+    - { id: housing, q: "{county_name} {state_code} rental assistance program", category: housing }
+    - { id: utilities, q: "{county_name} {state_code} utility assistance program", category: utilities }
+    - { id: food, q: "{county_name} {state_code} food assistance program", category: food }
+    - { id: healthcare, q: "{county_name} {state_code} indigent health care program", category: healthcare }
+    - { id: seniors, q: "{county_name} {state_code} senior services assistance", category: seniors }
+    - { id: veterans, q: "{county_name} {state_code} veterans services", category: veterans }
+    - { id: tax_relief, q: "{county_name} {state_code} property tax exemption", category: tax_relief }
+    - { id: site_assist, q: "site:{domain} assistance program", requires_domain: true }

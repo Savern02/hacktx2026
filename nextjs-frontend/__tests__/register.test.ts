@@ -15,6 +15,7 @@ describe("register action", () => {
     const formData = new FormData();
     formData.set("email", "a@a.com");
     formData.set("password", "Q12341414#");
+    formData.set("zip_code", "78701");
 
     // Mock a successful register
     (registerRegister as jest.Mock).mockResolvedValue({});
@@ -25,6 +26,7 @@ describe("register action", () => {
       body: {
         email: "a@a.com",
         password: "Q12341414#",
+        zip_code: "78701",
       },
     });
 
@@ -34,6 +36,7 @@ describe("register action", () => {
     const formData = new FormData();
     formData.set("email", "a@a.com");
     formData.set("password", "Q12341414#");
+    formData.set("zip_code", "78701");
 
     // Mock a failed register
     (registerRegister as jest.Mock).mockResolvedValue({
@@ -48,6 +51,7 @@ describe("register action", () => {
       body: {
         email: "a@a.com",
         password: "Q12341414#",
+        zip_code: "78701",
       },
     });
     expect(result).toEqual({
@@ -59,6 +63,7 @@ describe("register action", () => {
     const formData = new FormData();
     formData.set("email", "email");
     formData.set("password", "invalid_password");
+    formData.set("zip_code", "78701");
 
     const result = await register({}, formData);
 
@@ -82,6 +87,7 @@ describe("register action", () => {
     const formData = new FormData();
     formData.append("email", "testuser@example.com");
     formData.append("password", "Password123#");
+    formData.append("zip_code", "78701");
 
     const result = await register(undefined, formData);
 

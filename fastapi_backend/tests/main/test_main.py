@@ -79,7 +79,7 @@ class TestPasswordValidation:
         self, test_client, email, password, expected_status, expected_detail
     ):
         """Test user registration with password validation."""
-        json = {"email": email, "password": password}
+        json = {"email": email, "password": password, "zip_code": "78701"}
         response = await test_client.post("/auth/register", json=json)
 
         assert response.status_code == expected_status
@@ -90,6 +90,7 @@ class TestPasswordValidation:
         json = {
             "email": "user@1.com",
             "password": "Sppecialchar1#",
+            "zip_code": "78701",
         }
         response = await test_client.post("/auth/register", json=json)
 

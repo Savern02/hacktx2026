@@ -350,7 +350,7 @@
                 },
                 "examples": {
                   "VERIFY_USER_BAD_TOKEN": {
-                    "summary": "Bad token, not existing user ornot the e-mail currently set for the user.",
+                    "summary": "Bad token, not existing user or not the e-mail currently set for the user.",
                     "value": {
                       "detail": "VERIFY_USER_BAD_TOKEN"
                     }
@@ -675,54 +675,83 @@
         }
       }
     },
-    "/items/": {
+    "/users/me/balance": {
       "get": {
         "tags": [
-          "item"
+          "balance"
         ],
-        "summary": "Read Item",
-        "operationId": "read_item",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "description": "Page number",
-              "default": 1,
-              "title": "Page"
-            },
-            "description": "Page number"
-          },
-          {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "description": "Page size",
-              "default": 50,
-              "title": "Size"
-            },
-            "description": "Page size"
-          }
-        ],
+        "summary": "Get Balance",
+        "operationId": "get_balance",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_ItemRead_"
+                  "$ref": "#/components/schemas/BalanceRead"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/users/me/bank/connect": {
+      "post": {
+        "tags": [
+          "balance"
+        ],
+        "summary": "Connect Bank",
+        "description": "Create a fresh Nessie customer + checking account for this user (replaces any old one).",
+        "operationId": "connect_bank",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankConnection"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Send Message",
+        "operationId": "send_message",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
                 }
               }
             }
@@ -737,36 +766,75 @@
               }
             }
           }
-        }
-      },
-      "post": {
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/programs/me": {
+      "get": {
         "tags": [
-          "item"
+          "programs"
         ],
-        "summary": "Create Item",
-        "operationId": "create_item",
+        "summary": "Get My Programs",
+        "operationId": "get_my_programs",
         "security": [
           {
             "OAuth2PasswordBearer": []
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ItemCreate"
-              }
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "federal_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Federal Limit"
+            }
+          },
+          {
+            "name": "federal_offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Federal Offset"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemRead"
+                  "$ref": "#/components/schemas/ProgramsForUser"
                 }
               }
             }
@@ -784,13 +852,60 @@
         }
       }
     },
-    "/items/{item_id}": {
-      "delete": {
+    "/programs/me/location": {
+      "put": {
         "tags": [
-          "item"
+          "programs"
         ],
-        "summary": "Delete Item",
-        "operationId": "delete_item",
+        "summary": "Change My Location",
+        "description": "'Not right? Change city.' Pick one of the alternates; it's never auto-overwritten.",
+        "operationId": "change_my_location",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/finance/me/health": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Get My Financial Health",
+        "operationId": "get_my_financial_health",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -798,13 +913,13 @@
         ],
         "parameters": [
           {
-            "name": "item_id",
-            "in": "path",
-            "required": true,
+            "name": "refresh",
+            "in": "query",
+            "required": false,
             "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Item Id"
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
             }
           }
         ],
@@ -813,7 +928,57 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialHealth"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/finance/me/program-matches": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Get My Program Matches",
+        "operationId": "get_my_program_matches",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramMatches"
+                }
               }
             }
           },
@@ -833,6 +998,50 @@
   },
   "components": {
     "schemas": {
+      "BalanceRead": {
+        "properties": {
+          "balance": {
+            "type": "number",
+            "title": "Balance"
+          },
+          "upcoming_bills": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingBill"
+            },
+            "type": "array",
+            "title": "Upcoming Bills"
+          },
+          "upcoming_bills_total": {
+            "type": "number",
+            "title": "Upcoming Bills Total"
+          },
+          "safe_to_spend": {
+            "type": "number",
+            "title": "Safe To Spend"
+          }
+        },
+        "type": "object",
+        "required": [
+          "balance",
+          "upcoming_bills",
+          "upcoming_bills_total",
+          "safe_to_spend"
+        ],
+        "title": "BalanceRead"
+      },
+      "BankConnection": {
+        "properties": {
+          "nessie_customer_id": {
+            "type": "string",
+            "title": "Nessie Customer Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nessie_customer_id"
+        ],
+        "title": "BankConnection"
+      },
       "BearerResponse": {
         "properties": {
           "access_token": {
@@ -910,6 +1119,61 @@
         ],
         "title": "Body_auth-verify:verify"
       },
+      "ChatMessage": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "equa"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "ChatMessage"
+      },
+      "ChatRequest": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "minItems": 1,
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "ChatRequest"
+      },
+      "ChatResponse": {
+        "properties": {
+          "reply": {
+            "type": "string",
+            "title": "Reply"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reply"
+        ],
+        "title": "ChatResponse"
+      },
       "ErrorModel": {
         "properties": {
           "detail": {
@@ -933,6 +1197,53 @@
         ],
         "title": "ErrorModel"
       },
+      "FinancialHealth": {
+        "properties": {
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days"
+          },
+          "income_monthly": {
+            "type": "number",
+            "title": "Income Monthly"
+          },
+          "income_note": {
+            "type": "string",
+            "title": "Income Note"
+          },
+          "rule_50_30_20": {
+            "$ref": "#/components/schemas/Rule503020"
+          },
+          "rule_28_36": {
+            "$ref": "#/components/schemas/Rule2836"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/SpendingLine"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "struggling": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Struggling"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window_days",
+          "income_monthly",
+          "income_note",
+          "rule_50_30_20",
+          "rule_28_36",
+          "categories",
+          "struggling"
+        ],
+        "title": "FinancialHealth"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -946,13 +1257,17 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "ItemCreate": {
+      "LocationRead": {
         "properties": {
-          "name": {
+          "zip": {
             "type": "string",
-            "title": "Name"
+            "title": "Zip"
           },
-          "description": {
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "display_name": {
             "anyOf": [
               {
                 "type": "string"
@@ -961,33 +1276,166 @@
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Display Name"
           },
-          "quantity": {
+          "state": {
             "anyOf": [
               {
-                "type": "integer"
+                "$ref": "#/components/schemas/PlaceRef"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Quantity"
+            ]
+          },
+          "county": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user_confirmed": {
+            "type": "boolean",
+            "title": "User Confirmed"
+          },
+          "alternates": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceRef"
+            },
+            "type": "array",
+            "title": "Alternates"
           }
         },
         "type": "object",
         "required": [
+          "zip",
+          "method",
+          "display_name",
+          "state",
+          "county",
+          "city",
+          "user_confirmed",
+          "alternates"
+        ],
+        "title": "LocationRead"
+      },
+      "LocationUpdate": {
+        "properties": {
+          "jurisdiction_id": {
+            "type": "integer",
+            "title": "Jurisdiction Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jurisdiction_id"
+        ],
+        "title": "LocationUpdate"
+      },
+      "PlaceRef": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "level",
           "name"
         ],
-        "title": "ItemCreate"
+        "title": "PlaceRef"
       },
-      "ItemRead": {
+      "ProgramMatch": {
         "properties": {
+          "program": {
+            "$ref": "#/components/schemas/ProgramRead"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "program",
+          "reason",
+          "confidence"
+        ],
+        "title": "ProgramMatch"
+      },
+      "ProgramMatches": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramMatch"
+            },
+            "type": "array",
+            "title": "Matches"
+          },
+          "computed_at": {
+            "type": "string",
+            "title": "Computed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "matches",
+          "computed_at"
+        ],
+        "title": "ProgramMatches"
+      },
+      "ProgramRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
           "name": {
             "type": "string",
             "title": "Name"
           },
-          "description": {
+          "jurisdiction": {
+            "type": "string",
+            "title": "Jurisdiction"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "administering_agency": {
             "anyOf": [
               {
                 "type": "string"
@@ -996,103 +1444,270 @@
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Administering Agency"
           },
-          "quantity": {
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "summary": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Quantity"
+            "title": "Summary"
           },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
+          "eligibility_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligibility Summary"
           },
-          "user_id": {
+          "how_to_apply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "How To Apply"
+          },
+          "apply_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apply Url"
+          },
+          "info_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Info Url"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "jurisdiction",
+          "level",
+          "administering_agency",
+          "categories",
+          "summary",
+          "eligibility_summary",
+          "how_to_apply",
+          "apply_url",
+          "info_url",
+          "phone"
+        ],
+        "title": "ProgramRead"
+      },
+      "ProgramsForUser": {
+        "properties": {
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gathering": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gathering"
+          },
+          "local": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramRead"
+            },
+            "type": "array",
+            "title": "Local"
+          },
+          "federal": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramRead"
+            },
+            "type": "array",
+            "title": "Federal"
+          },
+          "federal_total": {
+            "type": "integer",
+            "title": "Federal Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "gathering",
+          "local",
+          "federal",
+          "federal_total"
+        ],
+        "title": "ProgramsForUser"
+      },
+      "Rule2836": {
+        "properties": {
+          "housing": {
+            "$ref": "#/components/schemas/RuleCheck"
+          },
+          "debt": {
+            "$ref": "#/components/schemas/RuleCheck"
+          }
+        },
+        "type": "object",
+        "required": [
+          "housing",
+          "debt"
+        ],
+        "title": "Rule2836"
+      },
+      "Rule503020": {
+        "properties": {
+          "needs": {
+            "$ref": "#/components/schemas/RuleCheck"
+          },
+          "wants": {
+            "$ref": "#/components/schemas/RuleCheck"
+          },
+          "savings": {
+            "$ref": "#/components/schemas/RuleCheck"
+          }
+        },
+        "type": "object",
+        "required": [
+          "needs",
+          "wants",
+          "savings"
+        ],
+        "title": "Rule503020"
+      },
+      "RuleCheck": {
+        "properties": {
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct"
+          },
+          "target": {
+            "type": "number",
+            "title": "Target"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount",
+          "pct",
+          "target",
+          "ok"
+        ],
+        "title": "RuleCheck"
+      },
+      "SpendingLine": {
+        "properties": {
+          "label": {
             "type": "string",
-            "format": "uuid",
-            "title": "User Id"
+            "title": "Label"
+          },
+          "bucket": {
+            "type": "string",
+            "enum": [
+              "needs",
+              "wants",
+              "housing",
+              "debt"
+            ],
+            "title": "Bucket"
+          },
+          "monthly": {
+            "type": "number",
+            "title": "Monthly"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "bucket",
+          "monthly"
+        ],
+        "title": "SpendingLine"
+      },
+      "UpcomingBill": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Due Date"
           }
         },
         "type": "object",
         "required": [
           "name",
-          "id",
-          "user_id"
+          "amount",
+          "due_date"
         ],
-        "title": "ItemRead"
-      },
-      "Page_ItemRead_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/ItemRead"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
-          },
-          "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Page"
-          },
-          "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Size"
-          },
-          "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Pages"
-          }
-        },
-        "type": "object",
-        "required": [
-          "items",
-          "page",
-          "size"
-        ],
-        "title": "Page[ItemRead]"
+        "title": "UpcomingBill"
       },
       "UserCreate": {
         "properties": {
@@ -1140,12 +1755,17 @@
             ],
             "title": "Is Verified",
             "default": false
+          },
+          "zip_code": {
+            "type": "string",
+            "title": "Zip Code"
           }
         },
         "type": "object",
         "required": [
           "email",
-          "password"
+          "password",
+          "zip_code"
         ],
         "title": "UserCreate"
       },
@@ -1175,6 +1795,39 @@
             "type": "boolean",
             "title": "Is Verified",
             "default": false
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "zip_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip Code"
+          },
+          "nessie_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nessie Customer Id"
           }
         },
         "type": "object",
@@ -1241,6 +1894,30 @@
               }
             ],
             "title": "Is Verified"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "zip_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip Code"
           }
         },
         "type": "object",

@@ -35,11 +35,15 @@ describe("Register Page", () => {
 
     fireEvent.change(emailInput, { target: { value: "testuser@example.com" } });
     fireEvent.change(passwordInput, { target: { value: "@1231231%a" } });
+    fireEvent.change(screen.getByLabelText(/zip code/i), {
+      target: { value: "78701" },
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       const formData = new FormData();
       formData.set("email", "testuser@example.com");
+      formData.set("zip_code", "78701");
       formData.set("password", "@1231231%a");
       expect(register).toHaveBeenCalledWith(undefined, formData);
     });
@@ -58,6 +62,9 @@ describe("Register Page", () => {
 
     fireEvent.change(emailInput, { target: { value: "already@already.com" } });
     fireEvent.change(passwordInput, { target: { value: "@1231231%a" } });
+    fireEvent.change(screen.getByLabelText(/zip code/i), {
+      target: { value: "78701" },
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -78,6 +85,9 @@ describe("Register Page", () => {
 
     fireEvent.change(emailInput, { target: { value: "test@test.com" } });
     fireEvent.change(passwordInput, { target: { value: "@1231231%a" } });
+    fireEvent.change(screen.getByLabelText(/zip code/i), {
+      target: { value: "78701" },
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -90,6 +100,7 @@ describe("Register Page", () => {
 
     const formData = new FormData();
     formData.set("email", "test@test.com");
+    formData.set("zip_code", "78701");
     formData.set("password", "@1231231%a");
     expect(register).toHaveBeenCalledWith(undefined, formData);
   });
@@ -114,6 +125,9 @@ describe("Register Page", () => {
 
     fireEvent.change(emailInput, { target: { value: "email@email.com" } });
     fireEvent.change(passwordInput, { target: { value: "invalid_password" } });
+    fireEvent.change(screen.getByLabelText(/zip code/i), {
+      target: { value: "78701" },
+    });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -132,6 +146,7 @@ describe("Register Page", () => {
 
     const formData = new FormData();
     formData.set("email", "email@email.com");
+    formData.set("zip_code", "78701");
     formData.set("password", "invalid_password");
     expect(register).toHaveBeenCalledWith(undefined, formData);
   });

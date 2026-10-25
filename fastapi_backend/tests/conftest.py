@@ -1,5 +1,6 @@
 from httpx import AsyncClient, ASGITransport
 import pytest_asyncio
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi_users.password import PasswordHelper
@@ -19,6 +20,7 @@ async def engine():
     engine = create_async_engine(settings.TEST_DATABASE_URL, echo=True)
 
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine

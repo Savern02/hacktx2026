@@ -4,8 +4,11 @@ from .schemas import UserCreate, UserRead, UserUpdate
 from .users import auth_backend, fastapi_users, AUTH_URL_PATH
 from fastapi.middleware.cors import CORSMiddleware
 from .utils import simple_generate_unique_route_id
-from app.routes.items import router as items_router
 from app.config import settings
+from app.routes.balance import router as balance_router
+from app.routes.chat import router as chat_router
+from app.routes.programs import router as programs_router
+from app.routes.finance import router as finance_router
 
 app = FastAPI(
     generate_unique_id_function=simple_generate_unique_route_id,
@@ -47,7 +50,9 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+app.include_router(balance_router, prefix="/users")
+app.include_router(chat_router, prefix="/chat")
+app.include_router(programs_router, prefix="/programs")
+app.include_router(finance_router, prefix="/finance")
 
-# Include items routes
-app.include_router(items_router, prefix="/items")
 add_pagination(app)

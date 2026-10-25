@@ -72,7 +72,7 @@ async def test_send_reset_password_email(mock_settings, mock_user, mocker):
     # Verify the message schema
     message_arg = mock_fastmail_instance.send_message.call_args[0][0]
     assert isinstance(message_arg, MessageSchema)
-    assert message_arg.subject == "Password recovery"
+    assert message_arg.subject == "Reset your Equa password"
     assert message_arg.recipients == [mock_user.email]
 
     # Verify template body contains correct data
