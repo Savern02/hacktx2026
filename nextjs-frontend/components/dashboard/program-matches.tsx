@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Sparkles } from "lucide-react";
 
 import type { ProgramMatches as Matches } from "@/app/clientService";
-import { fetchProgramMatches } from "@/components/actions/finance-action";
+import {
+  fetchProgramMatches,
+  setApplicationStatus,
+} from "@/components/actions/finance-action";
+import { StatusProgressBar } from "@/components/dashboard/status-progress-bar";
 
 type State =
   | { kind: "loading" }
@@ -33,6 +37,33 @@ export function ProgramMatches() {
       cancelled = true;
     };
   }, []);
+
+  const toggle = async (
+    programId: number,
+    current: "in-progress" | "complete",
+  ) => {
+    const next = current === "complete" ? "in-progress" : "complete";
+    if (state.kind !== "ready") return;
+    const flip = (status: typeof next) =>
+      setState((prev) =>
+        prev.kind === "ready"
+          ? {
+              ...prev,
+              data: {
+                ...prev.data,
+                matches: prev.data.matches.map((x) =>
+                  x.program.id === programId
+                    ? { ...x, application_status: status }
+                    : x,
+                ),
+              },
+            }
+          : prev,
+      );
+    flip(next); // optimistic
+    const result = await setApplicationStatus(programId, next);
+    if (!("ok" in result)) flip(current);
+  };
 
   const askAgain = async () => {
     setAsking(true);
@@ -102,37 +133,44 @@ export function ProgramMatches() {
           ) : null}
           {state.data.matches.length ? (
             <ul className="grid gap-3 md:grid-cols-2">
-              {state.data.matches.map(({ program, reason }) => {
-                const link = program.apply_url || program.info_url;
-                return (
-                  <li
-                    key={program.id}
-                    className="grid gap-2 rounded-lg border bg-card p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <h3 className="min-w-0 break-words font-medium">
-                        {program.name}
-                      </h3>
-                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        {program.jurisdiction}
-                      </span>
-                    </div>
-                    <p className="text-sm">{reason}</p>
-                    {link ? (
+              {state.data.matches.map((m) => (
+                <li
+                  key={m.program.id}
+                  className="grid gap-3 rounded-lg border bg-card p-4"
+                >
+                  <StatusProgressBar
+                    status={m.application_status}
+                    label={m.program.name}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {m.program.jurisdiction}
+                  </p>
+                  <p className="text-sm">{m.reason}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {m.application_url ? (
                       <a
-                        href={link}
+                        href={m.application_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-accent"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                       >
-                        Learn how to apply
+                        Apply
                         <ExternalLink className="h-4 w-4" aria-hidden="true" />
                         <span className="sr-only">(opens in a new tab)</span>
                       </a>
                     ) : null}
-                  </li>
-                );
-              })}
+                    <button
+                      type="button"
+                      onClick={() => toggle(m.program.id, m.application_status)}
+                      className="min-h-11 rounded-md border px-3 text-sm font-medium hover:bg-accent"
+                    >
+                      {m.application_status === "complete"
+                        ? "Not done yet"
+                        : "Mark as done"}
+                    </button>
+                  </div>
+                </li>
+              ))}
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">

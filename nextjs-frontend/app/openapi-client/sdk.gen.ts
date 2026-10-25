@@ -62,6 +62,9 @@ import type {
   GetMyProgramMatchesData,
   GetMyProgramMatchesResponses,
   GetMyProgramMatchesErrors,
+  SetMyApplicationStatusData,
+  SetMyApplicationStatusResponses,
+  SetMyApplicationStatusErrors,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -522,5 +525,33 @@ export const getMyProgramMatches = <ThrowOnError extends boolean = false>(
     ],
     url: "/finance/me/program-matches",
     ...options,
+  });
+};
+
+/**
+ * Set My Application Status
+ * Mark a matched program's application as in progress or complete.
+ */
+export const setMyApplicationStatus = <ThrowOnError extends boolean = false>(
+  options: Options<SetMyApplicationStatusData, ThrowOnError>,
+) => {
+  return (options.client ?? client).put<
+    SetMyApplicationStatusResponses,
+    SetMyApplicationStatusErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/applications/{program_id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };

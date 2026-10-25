@@ -994,10 +994,107 @@
           }
         }
       }
+    },
+    "/finance/me/applications/{program_id}": {
+      "put": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Set My Application Status",
+        "description": "Mark a matched program's application as in progress or complete.",
+        "operationId": "set_my_application_status",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "program_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Program Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationStatusRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ApplicationStatusRead": {
+        "properties": {
+          "program_id": {
+            "type": "integer",
+            "title": "Program Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in-progress",
+              "complete"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "program_id",
+          "status"
+        ],
+        "title": "ApplicationStatusRead"
+      },
+      "ApplicationStatusUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "in-progress",
+              "complete"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ApplicationStatusUpdate"
+      },
       "BalanceRead": {
         "properties": {
           "balance": {
@@ -1381,13 +1478,34 @@
           "confidence": {
             "type": "number",
             "title": "Confidence"
+          },
+          "application_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Url"
+          },
+          "application_status": {
+            "type": "string",
+            "enum": [
+              "in-progress",
+              "complete"
+            ],
+            "title": "Application Status"
           }
         },
         "type": "object",
         "required": [
           "program",
           "reason",
-          "confidence"
+          "confidence",
+          "application_url",
+          "application_status"
         ],
         "title": "ProgramMatch"
       },

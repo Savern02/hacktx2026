@@ -329,3 +329,117 @@ async def test_program_matches_only_return_visible_programs(
     assert sent["ids"] == {visible.id}  # hidden programs are never offered to Gemini
     assert [m["program"]["name"] for m in body["matches"]] == ["SNAP"]
     assert body["summary"] == "Rent is the squeeze."
+
+
+def test_application_url_only_returns_real_links():
+    from app.routes.finance import application_url
+
+    def p(apply_url=None, info_url=None):
+        return Program(
+            name="x",
+            normalized_name="x",
+            audience="individual",
+            origin="admin",
+            apply_url=apply_url,
+            info_url=info_url,
+        )
+
+    assert (
+        application_url(p("https://www.benefits.gov/apply", "https://x.gov"))
+        == "https://www.benefits.gov/apply"
+    )
+    assert (
+        application_url(p("www.fns.usda.gov/snap", "https://www.fns.usda.gov/snap"))
+        == "https://www.fns.usda.gov/snap"
+    )
+    assert application_url(p("javascript:alert(1)", None)) is None
+    assert application_url(p(None, "http://localhost/apply")) is None
+    assert application_url(p()) is None
+
+
+async def test_matches_carry_application_status_that_users_can_update(
+    test_client, db_session, authenticated_user, monkeypatch
+):
+    federal = Jurisdiction(
+        level="federal", name="United States", display_name="Federal"
+    )
+    db_session.add(federal)
+    await db_session.flush()
+    snap = Program(
+        jurisdiction_id=federal.id,
+        name="SNAP",
+        normalized_name="snap",
+        audience="individual",
+        review_status="published",
+        origin="seed_sam_gov",
+        eligibility_summary="Low-income households.",
+        info_url="https://www.fns.usda.gov/snap",
+    )
+    hidden = Program(
+        jurisdiction_id=federal.id,
+        name="Unvetted",
+        normalized_name="unvetted",
+        audience="individual",
+        review_status="needs_review",
+        origin="seed_sam_gov",
+    )
+    db_session.add_all([snap, hidden])
+    await db_session.commit()
+    await _connect(db_session, authenticated_user["user"])
+
+    async def fake_fetch(customer_id, merchants):
+        return history_from_plan(customer_id)
+
+    async def fake_recommend(health, candidates):
+        return {
+            "summary": "s",
+            "recommendations": [
+                {
+                    "program_id": snap.id,
+                    "reason": "Groceries are high.",
+                    "confidence": 0.8,
+                }
+            ],
+        }
+
+    monkeypatch.setattr(service, "fetch_history", fake_fetch)
+    monkeypatch.setattr(service.advisor, "recommend", fake_recommend)
+    h = authenticated_user["headers"]
+
+    match = (await test_client.get("/finance/me/program-matches", headers=h)).json()[
+        "matches"
+    ][0]
+    assert (match["application_status"], match["application_url"]) == (
+        "in-progress",
+        "https://www.fns.usda.gov/snap",
+    )
+
+    r = await test_client.put(
+        f"/finance/me/applications/{snap.id}", headers=h, json={"status": "complete"}
+    )
+    assert r.status_code == 200 and r.json() == {
+        "program_id": snap.id,
+        "status": "complete",
+    }
+    match = (await test_client.get("/finance/me/program-matches", headers=h)).json()[
+        "matches"
+    ][0]
+    assert match["application_status"] == "complete"
+
+    assert (
+        await test_client.put(
+            f"/finance/me/applications/{snap.id}", headers=h, json={"status": "maybe"}
+        )
+    ).status_code == 422
+    assert (
+        await test_client.put(
+            f"/finance/me/applications/{hidden.id}",
+            headers=h,
+            json={"status": "complete"},
+        )
+    ).status_code == 404
+    assert (
+        await test_client.put(
+            "/finance/me/applications/999999", headers=h, json={"status": "complete"}
+        )
+    ).status_code == 404

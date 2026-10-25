@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import {
   getMyFinancialHealth,
   getMyProgramMatches,
+  setMyApplicationStatus,
   type FinancialHealth,
   type ProgramMatches,
 } from "@/app/clientService";
@@ -47,4 +48,19 @@ export async function fetchProgramMatches(
     return { message: "Equa had trouble thinking just now. Let's try again." };
   }
   return { data };
+}
+
+export async function setApplicationStatus(
+  programId: number,
+  status: "in-progress" | "complete",
+): Promise<{ ok: true } | { message: string }> {
+  const headers = await authHeaders();
+  if (!headers) return { message: "Please log in again." };
+  const { error } = await setMyApplicationStatus({
+    headers,
+    path: { program_id: programId },
+    body: { status },
+  });
+  if (error) return { message: "Equa couldn't save that. Let's try again." };
+  return { ok: true };
 }

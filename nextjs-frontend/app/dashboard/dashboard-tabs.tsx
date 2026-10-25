@@ -12,51 +12,8 @@ import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { MoneyCheckup } from "@/components/dashboard/money-checkup";
 import { ProgramMatches } from "@/components/dashboard/program-matches";
-import {
-  StatusProgressBar,
-  type ProgressStatus,
-} from "@/components/dashboard/status-progress-bar";
 
 // Placeholder data until the Nessie/Snowflake endpoints exist.
-// Mock government benefit applications until the backend tracks real ones.
-const SAMPLE_APPLICATIONS: {
-  id: string;
-  name: string;
-  description: string;
-  status: ProgressStatus;
-}[] = [
-  {
-    id: "snap",
-    name: "SNAP",
-    description: "Monthly food assistance on an EBT card",
-    status: "in-progress",
-  },
-  {
-    id: "liheap",
-    name: "LIHEAP",
-    description: "Help paying heating and electric bills",
-    status: "in-progress",
-  },
-  {
-    id: "medicaid",
-    name: "Medicaid",
-    description: "Free or low-cost health coverage",
-    status: "complete",
-  },
-  {
-    id: "lifeline",
-    name: "Lifeline",
-    description: "Discount on phone or internet service",
-    status: "complete",
-  },
-  {
-    id: "wic",
-    name: "WIC",
-    description: "Food and nutrition support for parents and young children",
-    status: "in-progress",
-  },
-];
-
 function OverviewTab() {
   return (
     <div className="grid gap-6">
@@ -67,24 +24,7 @@ function OverviewTab() {
 }
 
 function ProgramsTab() {
-  return (
-    <div className="grid gap-8">
-      <section className="grid gap-4">
-        <h2 className="text-lg font-semibold">Your applications</h2>
-        <ul className="grid gap-3 md:grid-cols-2">
-          {SAMPLE_APPLICATIONS.map((app) => (
-            <li key={app.id} className="rounded-lg border bg-card p-4">
-              <StatusProgressBar status={app.status} label={app.name} />
-              <p className="mt-2 text-sm text-muted-foreground">
-                {app.description}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <ProgramMatches />
-    </div>
-  );
+  return <ProgramMatches />;
 }
 
 const TABS: SidebarTab[] = [

@@ -136,10 +136,24 @@ class FinancialHealth(BaseModel):
     struggling: list[str]
 
 
+ApplicationStatus = Literal["in-progress", "complete"]
+
+
 class ProgramMatch(BaseModel):
     program: ProgramRead
     reason: str
     confidence: float
+    application_url: str | None  # a checked absolute http(s) link, or None
+    application_status: ApplicationStatus
+
+
+class ApplicationStatusUpdate(BaseModel):
+    status: ApplicationStatus
+
+
+class ApplicationStatusRead(BaseModel):
+    program_id: int
+    status: ApplicationStatus
 
 
 class ProgramMatches(BaseModel):
