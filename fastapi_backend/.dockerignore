@@ -1,0 +1,15 @@
+# Secrets never go in the image: the server supplies .env at runtime.
+.env
+.env.*
+!.env.example
+*.p8
+*.pem
+*.key
+
+# Local-only
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+__pycache__
+tests

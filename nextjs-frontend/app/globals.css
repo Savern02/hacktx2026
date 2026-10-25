@@ -1,6 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Tailwind v3's preflight `[hidden] { display: none }` loses to utilities like
+   `flex`, so collapsed panels stayed open. Tailwind v4 makes it important too. */
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none !important;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;

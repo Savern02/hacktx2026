@@ -131,6 +131,7 @@ NEVER_SYNCED = (
     "zcta_place",
     "financial_insights",
     "nessie_merchants",
+    "program_applications",
 )
 
 

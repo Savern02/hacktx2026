@@ -3,8 +3,13 @@
 import { cookies } from "next/headers";
 import {
   getMyFinancialHealth,
+  draftMyLenderRequest,
+  getMyAprImpact,
   getMyProgramMatches,
+  setMyApplicationStatus,
+  type AprImpact,
   type FinancialHealth,
+  type LenderRequest,
   type ProgramMatches,
 } from "@/app/clientService";
 
@@ -45,6 +50,51 @@ export async function fetchProgramMatches(
   if (notConnected(error)) return { notConnected: true };
   if (error || !data) {
     return { message: "Equa had trouble thinking just now. Let's try again." };
+  }
+  return { data };
+}
+
+export async function setApplicationStatus(
+  programId: number,
+  status: "in-progress" | "complete" | "not-applicable",
+): Promise<{ ok: true } | { message: string }> {
+  const headers = await authHeaders();
+  if (!headers) return { message: "Please log in again." };
+  const { error } = await setMyApplicationStatus({
+    headers,
+    path: { program_id: programId },
+    body: { status },
+  });
+  if (error) return { message: "Equa couldn't save that. Let's try again." };
+  return { ok: true };
+}
+
+export async function fetchAprImpact(): Promise<Result<AprImpact>> {
+  const headers = await authHeaders();
+  if (!headers) return { message: "Please log in again." };
+  const { data, error } = await getMyAprImpact({ headers });
+  if (notConnected(error)) return { notConnected: true };
+  if (error || !data) {
+    return {
+      message: "Equa couldn't read your loans just now. Let's try again.",
+    };
+  }
+  return { data };
+}
+
+export async function draftLenderRequest(
+  goal: "rate" | "deferment" = "rate",
+): Promise<{ data: LenderRequest } | { message: string }> {
+  const headers = await authHeaders();
+  if (!headers) return { message: "Please log in again." };
+  const { data, error } = await draftMyLenderRequest({
+    headers,
+    query: { goal },
+  });
+  if (error || !data) {
+    return {
+      message: "Equa couldn't write the request just now. Let's try again.",
+    };
   }
   return { data };
 }

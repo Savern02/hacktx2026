@@ -156,6 +156,15 @@ def test_advisor_keeps_only_listed_programs():
     )
 
 
+def test_short_reason_is_one_short_sentence():
+    assert advisor.short_reason("Rent is high. You may qualify.") == "Rent is high."
+    long = "Your rent is 48% of your take-home income, so you may qualify for rental help from this program and more"
+    out = advisor.short_reason(long)
+    assert len(out) <= advisor.REASON_MAX_CHARS and out.endswith("…")
+    assert not out[:-1].endswith((" ", ",", " and", " for"))
+    assert advisor.short_reason(None) == ""
+
+
 def test_advisor_message_lists_candidates_and_numbers():
     h = compute_health(history_from_plan(), TODAY.isoformat())
     msg = advisor.build_message(
@@ -329,3 +338,247 @@ async def test_program_matches_only_return_visible_programs(
     assert sent["ids"] == {visible.id}  # hidden programs are never offered to Gemini
     assert [m["program"]["name"] for m in body["matches"]] == ["SNAP"]
     assert body["summary"] == "Rent is the squeeze."
+
+
+def test_application_url_only_returns_real_links():
+    from app.routes.finance import application_url
+
+    def p(apply_url=None, info_url=None):
+        return Program(
+            name="x",
+            normalized_name="x",
+            audience="individual",
+            origin="admin",
+            apply_url=apply_url,
+            info_url=info_url,
+        )
+
+    assert (
+        application_url(p("https://www.benefits.gov/apply", "https://x.gov"))
+        == "https://www.benefits.gov/apply"
+    )
+    assert (
+        application_url(p("www.fns.usda.gov/snap", "https://www.fns.usda.gov/snap"))
+        == "https://www.fns.usda.gov/snap"
+    )
+    assert application_url(p("javascript:alert(1)", None)) is None
+    assert application_url(p(None, "http://localhost/apply")) is None
+    assert application_url(p()) is None
+
+
+async def test_matches_carry_application_status_that_users_can_update(
+    test_client, db_session, authenticated_user, monkeypatch
+):
+    federal = Jurisdiction(
+        level="federal", name="United States", display_name="Federal"
+    )
+    db_session.add(federal)
+    await db_session.flush()
+    snap = Program(
+        jurisdiction_id=federal.id,
+        name="SNAP",
+        normalized_name="snap",
+        audience="individual",
+        review_status="published",
+        origin="seed_sam_gov",
+        eligibility_summary="Low-income households.",
+        info_url="https://www.fns.usda.gov/snap",
+    )
+    hidden = Program(
+        jurisdiction_id=federal.id,
+        name="Unvetted",
+        normalized_name="unvetted",
+        audience="individual",
+        review_status="needs_review",
+        origin="seed_sam_gov",
+    )
+    db_session.add_all([snap, hidden])
+    await db_session.commit()
+    await _connect(db_session, authenticated_user["user"])
+
+    async def fake_fetch(customer_id, merchants):
+        return history_from_plan(customer_id)
+
+    async def fake_recommend(health, candidates):
+        return {
+            "summary": "s",
+            "recommendations": [
+                {
+                    "program_id": snap.id,
+                    "reason": "Groceries are high.",
+                    "confidence": 0.8,
+                }
+            ],
+        }
+
+    monkeypatch.setattr(service, "fetch_history", fake_fetch)
+    monkeypatch.setattr(service.advisor, "recommend", fake_recommend)
+    h = authenticated_user["headers"]
+
+    match = (await test_client.get("/finance/me/program-matches", headers=h)).json()[
+        "matches"
+    ][0]
+    assert (match["application_status"], match["application_url"]) == (
+        "in-progress",
+        "https://www.fns.usda.gov/snap",
+    )
+
+    r = await test_client.put(
+        f"/finance/me/applications/{snap.id}", headers=h, json={"status": "complete"}
+    )
+    assert r.status_code == 200 and r.json() == {
+        "program_id": snap.id,
+        "status": "complete",
+    }
+    match = (await test_client.get("/finance/me/program-matches", headers=h)).json()[
+        "matches"
+    ][0]
+    assert match["application_status"] == "complete"
+
+    assert (
+        await test_client.put(
+            f"/finance/me/applications/{snap.id}", headers=h, json={"status": "maybe"}
+        )
+    ).status_code == 422
+    assert (
+        await test_client.put(
+            f"/finance/me/applications/{hidden.id}",
+            headers=h,
+            json={"status": "complete"},
+        )
+    ).status_code == 404
+    assert (
+        await test_client.put(
+            "/finance/me/applications/999999", headers=h, json={"status": "complete"}
+        )
+    ).status_code == 404
+
+
+async def test_asking_again_keeps_programs_the_user_already_handled(
+    test_client, db_session, authenticated_user, monkeypatch
+):
+    federal = Jurisdiction(
+        level="federal", name="United States", display_name="Federal"
+    )
+    db_session.add(federal)
+    await db_session.flush()
+
+    def program(name):
+        return Program(
+            jurisdiction_id=federal.id,
+            name=name,
+            normalized_name=name.lower(),
+            audience="individual",
+            review_status="published",
+            origin="seed_sam_gov",
+            eligibility_summary="Low-income households.",
+        )
+
+    snap, liheap, wic = program("SNAP"), program("LIHEAP"), program("WIC")
+    db_session.add_all([snap, liheap, wic])
+    await db_session.commit()
+    await _connect(db_session, authenticated_user["user"])
+
+    async def fake_fetch(customer_id, merchants):
+        return history_from_plan(customer_id)
+
+    picks = [snap.id, liheap.id]
+    offered = {}
+
+    async def fake_recommend(health, candidates):
+        offered["ids"] = {c["id"] for c in candidates}
+        return {
+            "summary": "s",
+            "recommendations": [
+                {"program_id": pid, "reason": f"r{pid}", "confidence": 0.8}
+                for pid in picks
+            ],
+        }
+
+    monkeypatch.setattr(service, "fetch_history", fake_fetch)
+    monkeypatch.setattr(service.advisor, "recommend", fake_recommend)
+    h = authenticated_user["headers"]
+    url = "/finance/me/program-matches"
+
+    await test_client.get(url, headers=h)
+    await test_client.put(
+        f"/finance/me/applications/{snap.id}", headers=h, json={"status": "complete"}
+    )
+    await test_client.put(
+        f"/finance/me/applications/{liheap.id}",
+        headers=h,
+        json={"status": "not-applicable"},
+    )
+
+    picks[:] = [wic.id]  # Equa picks something new this time
+    body = (await test_client.get(f"{url}?refresh=true", headers=h)).json()
+
+    assert liheap.id not in offered["ids"]  # dismissed programs aren't re-offered
+    assert [
+        (m["program"]["name"], m["application_status"], m["reason"])
+        for m in body["matches"]
+    ] == [
+        ("WIC", "in-progress", f"r{wic.id}"),
+        ("SNAP", "complete", f"r{snap.id}"),
+        ("LIHEAP", "not-applicable", f"r{liheap.id}"),
+    ]
+
+    # Even if Equa picks handled programs again, it can't revive them as in-progress,
+    # and asking again (twice) never touches the saved rows.
+    picks[:] = [snap.id, liheap.id, wic.id]
+    body = (await test_client.get(f"{url}?refresh=true", headers=h)).json()
+    statuses = {m["program"]["name"]: m["application_status"] for m in body["matches"]}
+    assert statuses == {
+        "SNAP": "complete",
+        "LIHEAP": "not-applicable",
+        "WIC": "in-progress",
+    }
+    body = (await test_client.get(url, headers=h)).json()  # a plain reload
+    assert {
+        m["program"]["name"]: m["application_status"] for m in body["matches"]
+    } == statuses
+
+
+async def test_handled_programs_show_even_without_a_saved_recommendation(
+    test_client, db_session, authenticated_user, monkeypatch
+):
+    federal = Jurisdiction(
+        level="federal", name="United States", display_name="Federal"
+    )
+    db_session.add(federal)
+    await db_session.flush()
+    snap = Program(
+        jurisdiction_id=federal.id,
+        name="SNAP",
+        normalized_name="snap",
+        audience="individual",
+        review_status="published",
+        origin="seed_sam_gov",
+        summary="Help buying groceries.",
+    )
+    db_session.add(snap)
+    await db_session.commit()
+    await _connect(db_session, authenticated_user["user"])
+
+    async def fake_fetch(customer_id, merchants):
+        return history_from_plan(customer_id)
+
+    async def fake_recommend(health, candidates):
+        return {"summary": "s", "recommendations": []}  # Equa picks nothing
+
+    monkeypatch.setattr(service, "fetch_history", fake_fetch)
+    monkeypatch.setattr(service.advisor, "recommend", fake_recommend)
+    h = authenticated_user["headers"]
+    await test_client.put(
+        f"/finance/me/applications/{snap.id}",
+        headers=h,
+        json={"status": "not-applicable"},
+    )
+
+    body = (
+        await test_client.get("/finance/me/program-matches?refresh=true", headers=h)
+    ).json()
+    assert [
+        (m["program"]["name"], m["application_status"], m["reason"])
+        for m in body["matches"]
+    ] == [("SNAP", "not-applicable", "Help buying groceries.")]

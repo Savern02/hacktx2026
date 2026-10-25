@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, Landmark } from "lucide-react";
 
 import type { UserRead } from "@/app/clientService";
@@ -12,36 +12,47 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CACHE_KEYS, invalidate, setCached, useCached } from "@/lib/data-cache";
+import { firstNameOf, useFirstName } from "@/lib/use-first-name";
 
 type Notice = { tone: "ok" | "error"; text: string } | null;
 
+type ProfileResult = Awaited<ReturnType<typeof fetchProfile>>;
+
 export function SettingsTab() {
-  const [profile, setProfile] = useState<UserRead | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [zip, setZip] = useState("");
+  const { result } = useCached(CACHE_KEYS.profile, fetchProfile);
+  if (!result) {
+    return (
+      <div className="grid max-w-lg animate-pulse gap-4" aria-busy="true">
+        <span className="h-7 w-32 rounded bg-muted" />
+        <span className="h-48 rounded-lg bg-muted" />
+        <span className="h-32 rounded-lg bg-muted" />
+      </div>
+    );
+  }
+  if (!("data" in result)) {
+    return <p className="text-sm text-muted-foreground">{result.message}</p>;
+  }
+  // Keyed by user so the form starts from the cached profile.
+  return <SettingsForm key={result.data.id} profile={result.data} />;
+}
+
+function SettingsForm({ profile }: { profile: UserRead }) {
+  const [name, setName] = useState(profile.full_name ?? "");
+  const [zip, setZip] = useState(profile.zip_code ?? "");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [saving, setSaving] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [profileNotice, setProfileNotice] = useState<Notice>(null);
   const [bankNotice, setBankNotice] = useState<Notice>(null);
+  const firstName = useFirstName();
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchProfile().then((result) => {
-      if (cancelled) return;
-      if ("data" in result) {
-        setProfile(result.data);
-        setName(result.data.full_name ?? "");
-        setZip(result.data.zip_code ?? "");
-      } else {
-        setLoadError(result.message);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const setProfile = (update: (p: UserRead) => UserRead) =>
+    setCached<ProfileResult>(CACHE_KEYS.profile, (prev) =>
+      prev && "data" in prev
+        ? { data: update(prev.data) }
+        : (prev as ProfileResult),
+    );
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +61,18 @@ export function SettingsTab() {
     const result = await saveProfile({ full_name: name, zip_code: zip });
     setSaving(false);
     if ("data" in result) {
-      setProfile(result.data);
+      if (result.data.zip_code !== profile.zip_code) {
+        // A new ZIP means different nearby programs to match against.
+        invalidate(CACHE_KEYS.programMatches, CACHE_KEYS.aprImpact);
+      }
+      setProfile(() => result.data);
       setFieldErrors({});
-      setProfileNotice({ tone: "ok", text: "Saved! Equa will remember that." });
+      // Greet by the name just saved, not the one cached before it.
+      const savedFirst = firstNameOf(result.data.full_name);
+      setProfileNotice({
+        tone: "ok",
+        text: `Saved! Equa will remember that${savedFirst ? `, ${savedFirst}` : ""}.`,
+      });
     } else {
       setFieldErrors(result.fieldErrors ?? {});
       setProfileNotice({ tone: "error", text: result.message });
@@ -65,29 +85,24 @@ export function SettingsTab() {
     const result = await connectBankAccount();
     setConnecting(false);
     if ("customerId" in result) {
-      setProfile((p) => p && { ...p, nessie_customer_id: result.customerId });
+      setProfile((p) => ({ ...p, nessie_customer_id: result.customerId }));
+      // New bank, new history: everything financial must reload.
+      invalidate(
+        CACHE_KEYS.balance,
+        CACHE_KEYS.health,
+        CACHE_KEYS.aprImpact,
+        CACHE_KEYS.lenderRequest,
+        CACHE_KEYS.deferRequest,
+        CACHE_KEYS.programMatches,
+      );
       setBankNotice({
         tone: "ok",
-        text: "You're connected! Equa loaded 8 weeks of sample transactions. Check Overview for your money check-up.",
+        text: `You're connected${firstName ? `, ${firstName}` : ""}! Equa loaded 8 weeks of sample transactions. Check Overview for your money check-up.`,
       });
     } else {
       setBankNotice({ tone: "error", text: result.message });
     }
   };
-
-  if (loadError) {
-    return <p className="text-sm text-muted-foreground">{loadError}</p>;
-  }
-
-  if (!profile) {
-    return (
-      <div className="grid max-w-lg animate-pulse gap-4" aria-busy="true">
-        <span className="h-7 w-32 rounded bg-muted" />
-        <span className="h-48 rounded-lg bg-muted" />
-        <span className="h-32 rounded-lg bg-muted" />
-      </div>
-    );
-  }
 
   // Connecting needs a saved name and zip (the backend checks too).
   const profileSaved = Boolean(profile.full_name && profile.zip_code);

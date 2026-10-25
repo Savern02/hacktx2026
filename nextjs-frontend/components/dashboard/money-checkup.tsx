@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { CheckCircle2, CircleAlert } from "lucide-react";
 
 import type { FinancialHealth } from "@/app/clientService";
@@ -9,6 +8,8 @@ import {
   formatUsd,
   SpendingRingGrid,
 } from "@/components/dashboard/spending-ring";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { CACHE_KEYS, useCached } from "@/lib/data-cache";
 
 type State =
   | { kind: "loading" }
@@ -39,20 +40,14 @@ function Check({ ok, children }: { ok: boolean; children: React.ReactNode }) {
 }
 
 export function MoneyCheckup() {
-  const [state, setState] = useState<State>({ kind: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchFinancialHealth().then((result) => {
-      if (cancelled) return;
-      if ("data" in result) setState({ kind: "ready", data: result.data });
-      else if ("notConnected" in result) setState({ kind: "not-connected" });
-      else setState({ kind: "error", message: result.message });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { result } = useCached(CACHE_KEYS.health, fetchFinancialHealth);
+  const state: State = !result
+    ? { kind: "loading" }
+    : "data" in result
+      ? { kind: "ready", data: result.data }
+      : "notConnected" in result
+        ? { kind: "not-connected" }
+        : { kind: "error", message: result.message };
 
   if (state.kind === "loading") {
     return (
@@ -84,65 +79,95 @@ export function MoneyCheckup() {
   const { housing, debt } = h.rule_28_36;
   const share = (pct: number | null) =>
     pct === null ? "—" : `${Math.round(pct)}%`;
+  const rule503020 = (
+    <InfoTooltip
+      label="What is the 50/30/20 rule?"
+      text="50% on needs, 30% on wants, 20% on savings."
+    />
+  );
+  const rule2836 = (
+    <InfoTooltip
+      label="What is the 28/36 rule?"
+      text="Keep rent under 28% of income, and rent plus debt under 36%."
+    />
+  );
 
   return (
-    <section className="grid gap-4" aria-labelledby="checkup-heading">
+    <section
+      className="flex flex-col items-center gap-4 text-center"
+      aria-labelledby="checkup-heading"
+    >
       <div>
         <h2 id="checkup-heading" className="text-lg font-semibold">
           Your money check-up
         </h2>
         <p className="text-sm text-muted-foreground">
-          From your last 8 weeks: about {formatUsd(Math.round(income))} comes in
-          each month.
+          About {formatUsd(Math.round(income))} comes in each month. Tap a
+          circle to learn more.
         </p>
       </div>
 
+      {/* Each circle starts with just its number; the explanation is a tap away. */}
       <SpendingRingGrid
+        className="w-full"
         items={[
           {
             id: "needs",
-            label: "Needs (goal 50%)",
+            label: "Needs",
             spent: needs.amount,
             limit: income * 0.5,
+            details: (
+              <>
+                Needs take {share(needs.pct)} of your income. The 50/30/20 rule
+                aims for 50%. {rule503020}
+              </>
+            ),
           },
           {
             id: "wants",
-            label: "Wants (goal 30%)",
+            label: "Wants",
             spent: wants.amount,
             limit: income * 0.3,
+            details: (
+              <>
+                Wants take {share(wants.pct)} of your income. The 50/30/20 rule
+                allows up to 30%. {rule503020}
+              </>
+            ),
           },
           {
             id: "housing",
-            label: "Housing (limit 28%)",
+            label: "Housing",
             spent: housing.amount,
             limit: income * 0.28,
+            details: (
+              <>
+                Housing is {share(housing.pct)} of your income. The 28/36 rule
+                says 28% or less. {rule2836}
+              </>
+            ),
           },
           {
             id: "debt",
-            label: "Housing + debt (limit 36%)",
+            label: "Housing + debt",
             spent: debt.amount,
             limit: income * 0.36,
+            details: (
+              <>
+                Housing plus loan payments are {share(debt.pct)}. The 28/36 rule
+                says 36% or less. {rule2836}
+              </>
+            ),
           },
         ]}
       />
 
-      <ul className="grid gap-2 rounded-lg border bg-card p-4">
-        <Check ok={needs.ok}>
-          Needs take {share(needs.pct)} of your income. The 50/30/20 rule aims
-          for 50%.
-        </Check>
+      {/* Savings has no circle (more is better), so it gets one centered line. */}
+      <ul className="flex justify-center">
         <Check ok={savings.ok}>
           {savings.amount > 0
             ? `You keep about ${formatUsd(Math.round(savings.amount))} a month (${share(savings.pct)}). The goal is 20%.`
             : "Nothing is left over to save each month yet. The goal is 20%."}
-        </Check>
-        <Check ok={housing.ok}>
-          Housing is {share(housing.pct)} of your income. The 28/36 rule says
-          28% or less.
-        </Check>
-        <Check ok={debt.ok}>
-          Housing plus loan payments are {share(debt.pct)}. The 28/36 rule says
-          36% or less.
         </Check>
       </ul>
       <p className="text-xs text-muted-foreground">{h.income_note}</p>

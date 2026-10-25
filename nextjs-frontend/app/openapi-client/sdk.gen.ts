@@ -62,6 +62,14 @@ import type {
   GetMyProgramMatchesData,
   GetMyProgramMatchesResponses,
   GetMyProgramMatchesErrors,
+  GetMyAprImpactData,
+  GetMyAprImpactResponses,
+  DraftMyLenderRequestData,
+  DraftMyLenderRequestResponses,
+  DraftMyLenderRequestErrors,
+  SetMyApplicationStatusData,
+  SetMyApplicationStatusResponses,
+  SetMyApplicationStatusErrors,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -522,5 +530,81 @@ export const getMyProgramMatches = <ThrowOnError extends boolean = false>(
     ],
     url: "/finance/me/program-matches",
     ...options,
+  });
+};
+
+/**
+ * Get My Apr Impact
+ * The user's highest-APR debt, what it costs, and how utility help could pay it down.
+ */
+export const getMyAprImpact = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyAprImpactData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyAprImpactResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/apr-impact",
+    ...options,
+  });
+};
+
+/**
+ * Draft My Lender Request
+ * Equa (Gemini) drafts a rate-reduction or deferment request for the highest-APR loan.
+ */
+export const draftMyLenderRequest = <ThrowOnError extends boolean = false>(
+  options?: Options<DraftMyLenderRequestData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    DraftMyLenderRequestResponses,
+    DraftMyLenderRequestErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/lender-request",
+    ...options,
+  });
+};
+
+/**
+ * Set My Application Status
+ * Mark a matched program's application as in progress, complete, or not applicable.
+ */
+export const setMyApplicationStatus = <ThrowOnError extends boolean = false>(
+  options: Options<SetMyApplicationStatusData, ThrowOnError>,
+) => {
+  return (options.client ?? client).put<
+    SetMyApplicationStatusResponses,
+    SetMyApplicationStatusErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/applications/{program_id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
