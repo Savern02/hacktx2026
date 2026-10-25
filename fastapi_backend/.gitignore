@@ -2,3 +2,7 @@
 
 # Downloaded reference data (Census, HUD) and importer state
 data/
+
+# Private keys (e.g. the Snowflake service user key)
+secrets/
+*.p8

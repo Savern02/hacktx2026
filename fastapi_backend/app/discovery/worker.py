@@ -6,7 +6,7 @@ import logging
 import os
 import socket
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -28,6 +28,29 @@ SWEEP_EVERY_S = 300
 PAUSE_RETRY = timedelta(hours=1)
 
 DepsFactory = Callable[[AsyncSession], JobDeps]
+SyncHook = Callable[[], Awaitable[object]]
+
+
+def snowflake_hook(
+    settings: DiscoverySettings, sessions: async_sessionmaker[AsyncSession]
+) -> SyncHook | None:
+    """The Section 16 reporting sync, or None when SNOWFLAKE_ENABLED is false."""
+    if not settings.SNOWFLAKE_ENABLED:
+        return None
+    from app.snowflake import client
+    from app.snowflake.sync import check_staleness, run_sync
+
+    connect = client.connector(settings)
+    target = client.target(settings)
+    interval = timedelta(minutes=settings.SNOWFLAKE_SYNC_INTERVAL_MINUTES)
+
+    async def sync() -> object:
+        result = await run_sync(sessions, connect, target)
+        async with sessions() as session:
+            await check_staleness(session, interval)
+        return result
+
+    return sync
 
 
 def worker_id() -> str:
@@ -128,11 +151,23 @@ async def run_forever(
     make_deps: DepsFactory,
     *,
     once: bool = False,
+    snowflake_sync: SyncHook | None = None,
+    snowflake_interval: timedelta = timedelta(hours=1),
 ) -> None:
     wid = worker_id()
     log.info("Worker %s started", wid)
     last_sweep = 0.0
+    last_sync = 0.0
     while True:
+        if (
+            snowflake_sync
+            and time.monotonic() - last_sync > snowflake_interval.total_seconds()
+        ):
+            last_sync = time.monotonic()
+            try:
+                log.info("Snowflake sync: %s", await snowflake_sync())
+            except Exception:  # never let reporting break discovery
+                log.exception("Snowflake sync run failed")
         if time.monotonic() - last_sweep > SWEEP_EVERY_S:
             async with sessions() as session:
                 reaped = await queue.reap_stale(session)

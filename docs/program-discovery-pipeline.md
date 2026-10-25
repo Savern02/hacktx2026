@@ -2,7 +2,7 @@
 
 Oct 24, 2026 · @Savern
 
-> **Status (2026-10-24):** core pipeline built (build steps 1–9, coverage finalization, `ingest_status` and `ingest_run`); 70 offline discovery tests pass (86 backend tests in total). Approved scope and every deviation are in [Deviations](#deviations); see [Implementation status](#implementation-status) for the definition of done.
+> **Status (2026-10-24):** core pipeline built (build steps 1–9, coverage finalization, `ingest_status` and `ingest_run`); 82 offline discovery tests pass (98 backend tests in total). Approved scope and every deviation are in [Deviations](#deviations); see [Implementation status](#implementation-status) for the definition of done.
 
 ## 1. How to use this document
 
@@ -836,6 +836,8 @@ Decisions approved at Step 0: build the **core pipeline**, extract with **Gemini
 | Extraction, validation, upsert (Sections 9, 11) | `app/discovery/extractor.py`, `app/discovery/validator.py`, `app/discovery/upsert.py` |
 | User-facing API | `app/routes/programs.py`: `GET /programs/me`, `PUT /programs/me/location` |
 | Admin and bootstrap CLI | `commands/ingest_status.py`, `commands/ingest_run.py`, `commands/bootstrap_states.py`, `commands/smoke_live.py` |
+| Snowflake sync (Section 16) | `app/snowflake/tables.py` (the one table spec), `app/snowflake/sync.py`, `app/snowflake/client.py`, migration `6428a6d5fce1`, `python -m commands.snowflake_sync`, `snowflake/setup.sql`, `snowflake/views.sql`, `snowflake/README.md` |
+| Extraction prompt (Section 17.2) | `prompts/extract_programs.md` (in `fastapi_backend/`) |
 | Tests (Section 14) | `tests/discovery/` (offline; recorded Gemini responses in `tests/discovery/fixtures/`) |
 
 **Definition of done:**
@@ -848,6 +850,7 @@ Decisions approved at Step 0: build the **core pipeline**, extract with **Gemini
 - [x] API keys appear only in environment variables: `api_key` is never logged or stored, `.env` is gitignored, and a scan of repo files found no key values.
 - [x] All automated tests pass offline, and `.env.example` lists every variable.
 - [x] This document records every deviation (below).
+- [x] Snowflake sync (build step 12) is built behind `SNOWFLAKE_ENABLED` and tested offline with a fake connection. **Not run live**: there's no Snowflake account yet (see `snowflake/README.md`).
 
 ## Deviations
 
@@ -896,6 +899,16 @@ Each change from this document, with the reason.
 
 24. **The prompt lives at `fastapi_backend/prompts/extract_programs.md`, not `prompts/` at the repo root**, because the backend's Docker image only contains `fastapi_backend/`. The file is a version header (`version: 1`) followed by the 17.2 prompt copied exactly; a test fails if it ever drifts from this document. Every job records it in `stats.prompt_version`. "Force the tool with `tool_choice`" maps to Gemini's forced function call (`functionCallingConfig.mode = ANY` with `allowedFunctionNames = ["record_programs"]`). `{state_name}` is `none` for jurisdictions without a state.
 25. **The recorded Gemini fixtures were made with the earlier system prompt.** Rule 6 of the 17.1 kickoff prompt forbids live calls unless they're asked for in the session, so they weren't re-recorded. They still exercise the validator and the injection check. Re-record them with the new prompt before relying on them as a regression test for the prompt itself.
+
+**Snowflake (Section 16)**
+
+26. **Python driver instead of `snowflake-sdk`:** `snowflake-connector-python` 4.8.0 with `authenticator="SNOWFLAKE_JWT"` and `private_key_file`/`private_key_file_pwd`, the Python equivalents of `privateKeyPath`/`privateKeyPass`. It needs `pyjwt` 2.10.1 or newer, which conflicted with fastapi-users 13 (pinned to `pyjwt` 2.8.0). **fastapi-users was upgraded to 15.0.5.** The full test suite and a live register/login/logout pass, and the only OpenAPI change is a typo fix.
+27. **The table spec is derived from the SQLAlchemy models**, in `app/snowflake/tables.py` rather than `src/snowflake/tables.ts`. A synced model's columns are its Snowflake columns, minus explicit exclusions (`serpapi_requests.raw_response`), so the two can't drift. Unknown column types raise. A test asserts that no user-level table or column (`user`, `user_locations`, ZIP tables, `user_id`, `email`, `zip`) is ever synced. The Postgres users table is named `user` here, not `users`.
+28. **Stage tables are all `VARCHAR`.** Array binds send strings, and the MERGE casts back with `TO_TIMESTAMP_TZ`, `PARSE_JSON` and so on. Binding typed values (VARIANT especially) through array binds isn't reliable. Incremental reads use keyset pagination on (`updated_at`, key) inside the 10-minute overlap window.
+29. **`updated_at` triggers cover all five incrementally synced tables**, not only the three new columns. The job claim, enqueue and coverage upserts are raw SQL or `ON CONFLICT` updates that skip the ORM's `onupdate`.
+30. **The advisory lock is held on a dedicated connection for the whole run**, because the app's engine uses `NullPool`, so a connection returned to the pool closes and would drop a session-level lock. The `PROGRAM_SOURCES` full reload happens on the first run of each UTC day, or with `--full`.
+31. **Three extra aggregate views for the sponsor demo**, approved: `PROGRAMS_BY_CATEGORY`, `PROGRAMS_BY_STATE` and `FEDERAL_PROGRAMS_BY_AGENCY`. They use only program data and per-state coverage counts.
+32. **`snowflake/setup.sql` and `snowflake/views.sql` have not been run**, per the kickoff prompt's rule 6. There's no account yet.
 
 **Deferred under the approved "core pipeline" scope**
 

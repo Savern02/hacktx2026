@@ -35,6 +35,17 @@ class DiscoverySettings(BaseSettings):
 
     ALLOW_LIVE_SMOKE: bool = False
 
+    # Snowflake reporting copy (Section 16). Off by default; nothing reads from it.
+    SNOWFLAKE_ENABLED: bool = False
+    SNOWFLAKE_ACCOUNT: str | None = None  # account identifier, e.g. "myorg-myaccount"
+    SNOWFLAKE_USER: str = "PROGRAM_PIPELINE_SVC"
+    SNOWFLAKE_PRIVATE_KEY_PATH: Path | None = None  # PEM file; keep it out of the repo
+    SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: str | None = None
+    SNOWFLAKE_ROLE: str = "PROGRAM_PIPELINE_LOADER"
+    SNOWFLAKE_WAREHOUSE: str = "PROGRAM_PIPELINE_WH"
+    SNOWFLAKE_DATABASE: str = "PROGRAM_PIPELINE"
+    SNOWFLAKE_SYNC_INTERVAL_MINUTES: int = 60
+
     # Downloaded reference files (Census) are cached here; gitignored.
     DATA_DIR: Path = BACKEND_DIR / "data"
     CONFIG_DIR: Path = BACKEND_DIR / "config"

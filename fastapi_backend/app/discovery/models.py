@@ -11,6 +11,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
+    DDL,
     BigInteger,
     Boolean,
     CheckConstraint,
@@ -25,6 +26,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    event,
     func,
     text,
 )
@@ -95,6 +97,9 @@ class Jurisdiction(Base):
     place_class: Mapped[str | None] = mapped_column(Text)
     is_incorporated: Mapped[bool | None] = mapped_column(Boolean)
     serpapi_location: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class JurisdictionDomain(Base):
@@ -278,6 +283,9 @@ class SourceDocument(Base):
     consecutive_failures: Mapped[int] = mapped_column(
         SmallInteger, server_default=text("0")
     )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class ProgramSource(Base):
@@ -377,6 +385,9 @@ class IngestionJob(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class SerpApiRequest(Base):
@@ -400,3 +411,45 @@ class SerpApiRequest(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class SnowflakeSyncState(Base):
+    """Watermarks for the one-way Postgres -> Snowflake reporting sync (Section 16)."""
+
+    __tablename__ = "snowflake_sync_state"
+
+    table_name: Mapped[str] = mapped_column(Text, primary_key=True)
+    watermark_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    watermark_id: Mapped[int | None] = mapped_column(BigInteger)
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rows_last_run: Mapped[int | None] = mapped_column(Integer)
+    last_error: Mapped[str | None] = mapped_column(Text)
+
+
+# updated_at is kept current by a trigger (not just the ORM's onupdate), because
+# raw-SQL updates such as the job claim and enqueue upserts bypass the ORM.
+SYNCED_INCREMENTALLY = (
+    Jurisdiction,
+    Program,
+    SourceDocument,
+    JurisdictionCoverage,
+    IngestionJob,
+)
+SET_UPDATED_AT_FUNCTION = (
+    "CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger LANGUAGE plpgsql AS "
+    "$$ BEGIN NEW.updated_at = now(); RETURN NEW; END $$"
+)
+
+
+def updated_at_trigger_sql(table: str) -> str:
+    return (
+        f"CREATE TRIGGER {table}_set_updated_at BEFORE UPDATE ON {table} "
+        "FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    )
+
+
+event.listen(Base.metadata, "before_create", DDL(SET_UPDATED_AT_FUNCTION))
+for _model in SYNCED_INCREMENTALLY:
+    _table = _model.__table__
+    Index(f"{_table.name}_updated_at", _table.c.updated_at)
+    event.listen(_table, "after_create", DDL(updated_at_trigger_sql(_table.name)))
