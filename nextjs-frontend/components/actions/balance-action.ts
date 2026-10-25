@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getBalance, type BalanceRead } from "@/app/clientService";
 
 export async function fetchBalance(): Promise<
-  { data: BalanceRead } | { message: string }
+  { data: BalanceRead } | { notConnected: true } | { message: string }
 > {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
@@ -19,8 +19,14 @@ export async function fetchBalance(): Promise<
     },
   });
 
+  if ((error as { detail?: unknown })?.detail === "BANK_NOT_CONNECTED") {
+    return { notConnected: true };
+  }
+
   if (error || !data) {
-    return { message: "Couldn't load your balance. Please try again." };
+    return {
+      message: "Hmm, Equa couldn't reach your bank just now. Let's try again.",
+    };
   }
 
   return { data };

@@ -23,6 +23,16 @@ export type BalanceRead = {
 };
 
 /**
+ * BankConnection
+ */
+export type BankConnection = {
+  /**
+   * Nessie Customer Id
+   */
+  nessie_customer_id: string;
+};
+
+/**
  * BearerResponse
  */
 export type BearerResponse = {
@@ -78,6 +88,40 @@ export type BodyAuthVerifyVerify = {
    * Token
    */
   token: string;
+};
+
+/**
+ * ChatMessage
+ */
+export type ChatMessage = {
+  /**
+   * Role
+   */
+  role: "user" | "equa";
+  /**
+   * Text
+   */
+  text: string;
+};
+
+/**
+ * ChatRequest
+ */
+export type ChatRequest = {
+  /**
+   * Messages
+   */
+  messages: Array<ChatMessage>;
+};
+
+/**
+ * ChatResponse
+ */
+export type ChatResponse = {
+  /**
+   * Reply
+   */
+  reply: string;
 };
 
 /**
@@ -172,6 +216,18 @@ export type UserRead = {
    * Is Verified
    */
   is_verified?: boolean;
+  /**
+   * Full Name
+   */
+  full_name?: string | null;
+  /**
+   * Zip Code
+   */
+  zip_code?: string | null;
+  /**
+   * Nessie Customer Id
+   */
+  nessie_customer_id?: string | null;
 };
 
 /**
@@ -198,6 +254,14 @@ export type UserUpdate = {
    * Is Verified
    */
   is_verified?: boolean | null;
+  /**
+   * Full Name
+   */
+  full_name?: string | null;
+  /**
+   * Zip Code
+   */
+  zip_code?: string | null;
 };
 
 /**
@@ -644,6 +708,49 @@ export type GetBalanceResponses = {
 };
 
 export type GetBalanceResponse = GetBalanceResponses[keyof GetBalanceResponses];
+
+export type ConnectBankData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/users/me/bank/connect";
+};
+
+export type ConnectBankResponses = {
+  /**
+   * Successful Response
+   */
+  200: BankConnection;
+};
+
+export type ConnectBankResponse =
+  ConnectBankResponses[keyof ConnectBankResponses];
+
+export type SendMessageData = {
+  body: ChatRequest;
+  path?: never;
+  query?: never;
+  url: "/chat";
+};
+
+export type SendMessageErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SendMessageError = SendMessageErrors[keyof SendMessageErrors];
+
+export type SendMessageResponses = {
+  /**
+   * Successful Response
+   */
+  200: ChatResponse;
+};
+
+export type SendMessageResponse =
+  SendMessageResponses[keyof SendMessageResponses];
 
 export type ClientOptions = {
   baseURL: `${string}://openapi.json` | (string & {});

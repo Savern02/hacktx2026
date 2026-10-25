@@ -25,10 +25,11 @@ export default function Page() {
         <Card className="w-full max-w-sm rounded-lg shadow-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-white">
-              Password Recovery
+              Locked out? No problem.
             </CardTitle>
             <CardDescription className="text-sm text-gray-600 dark:text-gray-400">
-              Enter your email to receive instructions to reset your password.
+              Tell Equa your email and I&apos;ll send you a link to reset your
+              password.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 p-6">
@@ -58,7 +59,7 @@ export default function Page() {
                 href="/login"
                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500"
               >
-                Back to login
+                Never mind, take me back
               </Link>
             </div>
           </CardContent>

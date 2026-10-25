@@ -45,6 +45,11 @@ import type {
   UsersPatchUserErrors,
   GetBalanceData,
   GetBalanceResponses,
+  ConnectBankData,
+  ConnectBankResponses,
+  SendMessageData,
+  SendMessageResponses,
+  SendMessageErrors,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -357,5 +362,56 @@ export const getBalance = <ThrowOnError extends boolean = false>(
     ],
     url: "/users/me/balance",
     ...options,
+  });
+};
+
+/**
+ * Connect Bank
+ * Create a fresh Nessie customer + checking account for this user (replaces any old one).
+ */
+export const connectBank = <ThrowOnError extends boolean = false>(
+  options?: Options<ConnectBankData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    ConnectBankResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/users/me/bank/connect",
+    ...options,
+  });
+};
+
+/**
+ * Send Message
+ */
+export const sendMessage = <ThrowOnError extends boolean = false>(
+  options: Options<SendMessageData, ThrowOnError>,
+) => {
+  return (options.client ?? client).post<
+    SendMessageResponses,
+    SendMessageErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/chat",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };

@@ -24,10 +24,11 @@ export default function Page() {
         <Card className="w-full max-w-sm rounded-lg shadow-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-white">
-              Sign Up
+              Hi, I&apos;m Equa!
             </CardTitle>
             <CardDescription className="text-sm text-gray-600 dark:text-gray-400">
-              Enter your email and password below to create your account.
+              Create your account and I&apos;ll start looking out for your
+              money.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 p-6">
@@ -71,7 +72,7 @@ export default function Page() {
                 href="/login"
                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500"
               >
-                Back to login
+                Already have an account? Log in
               </Link>
             </div>
           </CardContent>

@@ -1,0 +1,63 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.models import User
+from app.routes.balance import get_upcoming_bills
+from app.schemas import ChatRequest, ChatResponse
+from app.services import gemini_service, nessie_service
+from app.users import current_active_user
+
+router = APIRouter(tags=["chat"])
+
+EQUA_PROMPT = """You are Equa, a friendly money helper inside the Equa app ("Have a problem? Use Equa.").
+Your users are often under financial stress. Be warm, calm and encouraging, never judgmental.
+
+How you talk:
+- Plain, simple words at about a 6th-grade reading level. No jargon; explain any money term you must use.
+- Short: 2 to 4 sentences, readable on a phone. Use a short list only when giving steps.
+- Always end with one clear next step the user can take.
+- Plain text only, no markdown headings or tables.
+
+What the app has, so you can point people to it:
+- Overview tab: "Safe to Spend" (checking balance minus upcoming bills) and spending rings per category.
+- Programs tab: tracks applications for government benefits such as SNAP, LIHEAP, Medicaid, Lifeline and WIC.
+
+Rules:
+- You are not a licensed financial, legal or tax advisor. For big decisions, suggest talking to a nonprofit credit counselor or calling 211 in the US.
+- Never ask for passwords, full card or account numbers, or Social Security numbers.
+- If someone mentions being in danger or crisis, gently share 988 (Suicide & Crisis Lifeline) or 911.
+- Don't invent numbers. Only use the user's figures given below."""
+
+
+async def build_user_context(user: User) -> str:
+    if user.nessie_customer_id is None:
+        return "No bank account is linked yet."
+    try:
+        balance = await nessie_service.get_checking_balance(user.nessie_customer_id)
+    except nessie_service.NessieError:
+        return "The user's bank data is unavailable right now."
+    bills = get_upcoming_bills()
+    bills_total = sum(b.amount for b in bills)
+    bill_lines = "\n".join(
+        f"- {b.name}: ${b.amount:,.2f} due {b.due_date:%b %d}" for b in bills
+    )
+    return (
+        f"Checking balance: ${balance:,.2f}\n"
+        f"Upcoming bills:\n{bill_lines}\n"
+        f"Safe to Spend (balance minus bills): ${balance - bills_total:,.2f}"
+    )
+
+
+@router.post("", response_model=ChatResponse)
+async def send_message(
+    request: ChatRequest,
+    user: User = Depends(current_active_user),
+):
+    system_prompt = (
+        f"{EQUA_PROMPT}\n\nThe user's current finances:\n"
+        f"{await build_user_context(user)}"
+    )
+    try:
+        reply = await gemini_service.generate_reply(system_prompt, request.messages)
+    except gemini_service.GeminiError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))
+    return ChatResponse(reply=reply)

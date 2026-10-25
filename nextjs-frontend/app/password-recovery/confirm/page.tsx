@@ -29,9 +29,9 @@ function ResetPasswordForm() {
     <form action={dispatch}>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Reset your Password</CardTitle>
+          <CardTitle className="text-2xl">Pick a new password</CardTitle>
           <CardDescription>
-            Enter the new password and confirm it.
+            Choose something you&apos;ll remember. Equa will take it from here.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -68,7 +68,7 @@ function ResetPasswordForm() {
 export default function Page() {
   return (
     <div className="flex h-screen w-full items-center justify-center px-4">
-      <Suspense fallback={<div>Loading reset form...</div>}>
+      <Suspense fallback={<div>Equa is getting things ready…</div>}>
         <ResetPasswordForm />
       </Suspense>
     </div>

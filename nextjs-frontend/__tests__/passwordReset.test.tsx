@@ -28,7 +28,7 @@ describe("passwordReset action", () => {
       body: { email: "testuser@example.com" },
     });
     expect(result).toEqual({
-      message: "Password reset instructions sent to your email.",
+      message: "Check your inbox! Equa sent you a link to reset your password.",
     });
   });
 

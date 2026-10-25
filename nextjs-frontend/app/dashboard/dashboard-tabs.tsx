@@ -1,13 +1,15 @@
 "use client";
 
-import { FileText, LayoutDashboard, LogOut } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Settings } from "lucide-react";
 
 import { logout } from "@/components/actions/logout-action";
 import {
   DashboardSidebar,
   type SidebarTab,
 } from "@/components/dashboard/sidebar";
+import { EquaChat } from "@/components/dashboard/equa-chat";
 import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
+import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { SpendingRingGrid } from "@/components/dashboard/spending-ring";
 import {
   StatusProgressBar,
@@ -66,7 +68,9 @@ function OverviewTab() {
     <div className="grid gap-6">
       <SafeToSpendRing />
       <section className="grid gap-4">
-        <h2 className="text-lg font-semibold">Spending this month</h2>
+        <h2 className="text-lg font-semibold">
+          Here&apos;s how your spending looks this month
+        </h2>
         <SpendingRingGrid items={SAMPLE_SPENDING} />
       </section>
     </div>
@@ -104,12 +108,20 @@ const TABS: SidebarTab[] = [
     icon: FileText,
     content: <ProgramsTab />,
   },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    content: <SettingsTab />,
+  },
 ];
 
 export function DashboardTabs() {
   return (
     <DashboardSidebar
-      title="GrantMother"
+      title="Equa"
+      titleHref="/"
+      chat={<EquaChat />}
       tabs={TABS}
       footer={
         <button

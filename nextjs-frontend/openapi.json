@@ -700,6 +700,79 @@
           }
         ]
       }
+    },
+    "/users/me/bank/connect": {
+      "post": {
+        "tags": [
+          "balance"
+        ],
+        "summary": "Connect Bank",
+        "description": "Create a fresh Nessie customer + checking account for this user (replaces any old one).",
+        "operationId": "connect_bank",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankConnection"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Send Message",
+        "operationId": "send_message",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -734,6 +807,19 @@
           "safe_to_spend"
         ],
         "title": "BalanceRead"
+      },
+      "BankConnection": {
+        "properties": {
+          "nessie_customer_id": {
+            "type": "string",
+            "title": "Nessie Customer Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nessie_customer_id"
+        ],
+        "title": "BankConnection"
       },
       "BearerResponse": {
         "properties": {
@@ -811,6 +897,61 @@
           "token"
         ],
         "title": "Body_auth-verify:verify"
+      },
+      "ChatMessage": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "equa"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "ChatMessage"
+      },
+      "ChatRequest": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "minItems": 1,
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "ChatRequest"
+      },
+      "ChatResponse": {
+        "properties": {
+          "reply": {
+            "type": "string",
+            "title": "Reply"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reply"
+        ],
+        "title": "ChatResponse"
       },
       "ErrorModel": {
         "properties": {
@@ -953,6 +1094,39 @@
             "type": "boolean",
             "title": "Is Verified",
             "default": false
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "zip_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip Code"
+          },
+          "nessie_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nessie Customer Id"
           }
         },
         "type": "object",
@@ -1019,6 +1193,31 @@
               }
             ],
             "title": "Is Verified"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "zip_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{5}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip Code"
           }
         },
         "type": "object",

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     MAIL_FROM: str | None = None
     MAIL_SERVER: str | None = None
     MAIL_PORT: int | None = None
-    MAIL_FROM_NAME: str = "FastAPI template"
+    MAIL_FROM_NAME: str = "Equa"
     MAIL_STARTTLS: bool = True
     MAIL_SSL_TLS: bool = False
     USE_CREDENTIALS: bool = True
@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     # Capital One Nessie (mock banking API)
     NESSIE_API_KEY: str | None = None
     NESSIE_BASE_URL: str = "https://api.nessieisreal.com"
+
+    # Google Gemini (Equa chat)
+    GEMINI_KEY: str | None = None
+    GEMINI_MODEL: str = "gemini-2.5-flash"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

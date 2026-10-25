@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .utils import simple_generate_unique_route_id
 from app.config import settings
 from app.routes.balance import router as balance_router
+from app.routes.chat import router as chat_router
 
 app = FastAPI(
     generate_unique_id_function=simple_generate_unique_route_id,
@@ -48,5 +49,6 @@ app.include_router(
     tags=["users"],
 )
 app.include_router(balance_router, prefix="/users")
+app.include_router(chat_router, prefix="/chat")
 
 add_pagination(app)

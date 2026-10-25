@@ -23,7 +23,7 @@ describe("Password Reset Page", () => {
   it("displays success message on successful form submission", async () => {
     // Mock a successful password reset
     (passwordReset as jest.Mock).mockResolvedValue({
-      message: "Password reset instructions sent to your email.",
+      message: "Check your inbox! Equa sent you a link to reset your password.",
     });
 
     render(<Page />);
@@ -36,7 +36,9 @@ describe("Password Reset Page", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Password reset instructions sent to your email."),
+        screen.getByText(
+          "Check your inbox! Equa sent you a link to reset your password.",
+        ),
       ).toBeInTheDocument();
     });
 

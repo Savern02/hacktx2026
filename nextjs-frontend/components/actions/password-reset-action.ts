@@ -17,7 +17,9 @@ export async function passwordReset(prevState: unknown, formData: FormData) {
     if (error) {
       return { server_validation_error: getErrorMessage(error) };
     }
-    return { message: "Password reset instructions sent to your email." };
+    return {
+      message: "Check your inbox! Equa sent you a link to reset your password.",
+    };
   } catch (err) {
     console.error("Password reset error:", err);
     return {

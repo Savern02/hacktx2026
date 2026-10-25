@@ -25,20 +25,23 @@ function getLiquidity(balance: number, safeToSpend: number) {
   if (safeToSpend < 0 || fill < 0.15)
     return {
       fill,
-      cue: safeToSpend < 0 ? "Bills exceed your balance" : "Running low",
+      cue:
+        safeToSpend < 0
+          ? "Heads up: your bills are more than your balance"
+          : "Running low. Equa can help you find support.",
       ring: "text-red-600 dark:text-red-500",
       text: "text-red-700 dark:text-red-400",
     };
   if (fill < 0.4)
     return {
       fill,
-      cue: "Spend carefully",
+      cue: "Things are tight, so spend carefully",
       ring: "text-amber-500 dark:text-amber-400",
       text: "text-amber-700 dark:text-amber-400",
     };
   return {
     fill,
-    cue: "You're covered",
+    cue: "Nice! Your bills are covered",
     ring: "text-emerald-600 dark:text-emerald-400",
     text: "text-emerald-700 dark:text-emerald-400",
   };
@@ -47,7 +50,14 @@ function getLiquidity(balance: number, safeToSpend: number) {
 type State =
   | { kind: "loading" }
   | { kind: "error"; message: string }
+  | { kind: "not-connected" }
   | { kind: "ready"; data: BalanceRead };
+
+function toState(result: Awaited<ReturnType<typeof fetchBalance>>): State {
+  if ("data" in result) return { kind: "ready", data: result.data };
+  if ("notConnected" in result) return { kind: "not-connected" };
+  return { kind: "error", message: result.message };
+}
 
 export function SafeToSpendRing({ className }: { className?: string }) {
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -55,22 +65,14 @@ export function SafeToSpendRing({ className }: { className?: string }) {
   const load = useCallback(async () => {
     setState({ kind: "loading" });
     const result = await fetchBalance();
-    setState(
-      "data" in result
-        ? { kind: "ready", data: result.data }
-        : { kind: "error", message: result.message },
-    );
+    setState(toState(result));
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     fetchBalance().then((result) => {
       if (cancelled) return;
-      setState(
-        "data" in result
-          ? { kind: "ready", data: result.data }
-          : { kind: "error", message: result.message },
-      );
+      setState(toState(result));
     });
     return () => {
       cancelled = true;
@@ -100,7 +102,9 @@ export function SafeToSpendRing({ className }: { className?: string }) {
         aria-valuetext={
           data && liquidity
             ? `${usd.format(data.safe_to_spend)} safe to spend, ${liquidity.cue}`
-            : "Loading"
+            : state.kind === "not-connected"
+              ? "No bank connected"
+              : "Loading"
         }
         className="relative size-44 shrink-0 sm:size-48"
       >
@@ -131,7 +135,13 @@ export function SafeToSpendRing({ className }: { className?: string }) {
         </div>
       </div>
 
-      {state.kind === "error" ? (
+      {state.kind === "not-connected" ? (
+        <p className="max-w-sm text-sm text-muted-foreground">
+          Equa doesn&apos;t see a bank yet. Open{" "}
+          <span className="font-medium text-foreground">Settings</span> and tap
+          &ldquo;Connect to bank&rdquo; so I can show what&apos;s safe to spend.
+        </p>
+      ) : state.kind === "error" ? (
         <div className="flex flex-col items-center gap-3">
           <p className="text-sm text-muted-foreground">{state.message}</p>
           <button
@@ -139,7 +149,7 @@ export function SafeToSpendRing({ className }: { className?: string }) {
             onClick={load}
             className="min-h-11 rounded-md border px-4 text-sm font-medium hover:bg-accent"
           >
-            Try again
+            Let&apos;s try again
           </button>
         </div>
       ) : data && liquidity ? (

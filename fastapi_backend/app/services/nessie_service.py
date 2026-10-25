@@ -31,7 +31,7 @@ async def _request(method: str, path: str, json: dict | None = None) -> Any:
         return response.json()
 
 
-async def create_demo_customer(first_name: str, last_name: str) -> str:
+async def create_demo_customer(first_name: str, last_name: str, zip_code: str) -> str:
     """Create a Nessie customer with one checking account; return the customer id."""
     customer = await _request(
         "POST",
@@ -44,7 +44,7 @@ async def create_demo_customer(first_name: str, last_name: str) -> str:
                 "street_name": "Speedway",
                 "city": "Austin",
                 "state": "TX",
-                "zip": "78712",
+                "zip": zip_code,
             },
         },
     )
