@@ -116,7 +116,10 @@ docker compose up -d db
 # Re-run "docker compose pull && docker compose up -d" after changes later.
 nohup sh -c "
   cd $APP_DIR
-  until docker pull $IMAGE; do echo 'Waiting for $IMAGE on Docker Hub...'; sleep 30; done
+  # An image sent straight over SSH (docker save | docker load) counts too.
+  until docker image inspect $IMAGE >/dev/null 2>&1 || docker pull $IMAGE; do
+    echo 'Waiting for $IMAGE (Docker Hub, or docker load)...'; sleep 30
+  done
   until [ -s .env ]; do sleep 10; done
   docker compose up -d
   echo 'Equa backend is up: https://$API_DOMAIN/docs'

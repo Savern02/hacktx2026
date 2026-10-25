@@ -1,70 +1,77 @@
-## Next.js FastAPI Template
+# Equa: Equality Finances
 
-<a href="https://www.vintasoftware.com/blog/next-js-fastapi-template"><img src="docs/images/banner.png" alt="Next.js FastAPI Template" width="auto"></a>
-<p align="center">
-    <em>Next.js FastAPI Template: Python + Modern TypeScript stack with Zod validation.</em>
-</p>
-<p align="center">
-<a href="https://github.com/vintasoftware/nextjs-fastapi-template/actions/workflows/ci.yml" target="_blank">
-    <img src="https://github.com/vintasoftware/nextjs-fastapi-template/actions/workflows/ci.yml/badge.svg" alt="CI">
-</a>
-<a href="https://coveralls.io/github/vintasoftware/nextjs-fastapi-template" target="_blank">
-    <img src="https://coveralls.io/repos/github/vintasoftware/nextjs-fastapi-template/badge.svg" alt="Coverage">
-</a>
-</p>
+**HackTX 2026** · [equalityfin.tech](https://equalityfin.tech)
 
----
+> Have a problem? Use Equa.
 
-**Documentation**: <a href="https://vintasoftware.github.io/nextjs-fastapi-template/" target="_blank">https://vintasoftware.github.io/nextjs-fastapi-template/</a>
+## Inspiration
+Most fintech for underserved communities assumes the problem is a lack of financial literacy. The research says something different: scarcity eats cognitive bandwidth. When you live paycheck to paycheck, a budgeting app's pie chart doesn't help. It adds a "cognitive tax" and more anxiety.
 
-**Source Code**: <a href="https://github.com/vintasoftware/nextjs-fastapi-template/" target="_blank">https://github.com/vintasoftware/nextjs-fastapi-template/</a>
+People in that spot don't need another graph telling them they're broke. They need a guardrail that does the math, finds the help and writes the paperwork. That's what we built Equa to be.
 
----
+## What it does
+Equa connects to a bank account and turns the data into a few clear next steps. It never shows charts of money you don't have.
 
-The Next.js FastAPI Template provides a solid foundation for scalable, high-performance web applications, following clean architecture and best practices. It simplifies development by integrating FastAPI, Pydantic, and Next.js with TypeScript and Zod, ensuring end-to-end type safety and schema validation between frontend and backend.
+- **Safe to Spend.** One ring on the Overview shows your checking balance minus every bill due before your next payday (rent, utilities, loan payments).
+- **Money check-up.** Equa grades the last 8 weeks of history against the 50/30/20 and 28/36 rules and shows the result as simple pass/fail rings.
+- **Relief programs near you.** Equa finds local, state and federal assistance programs for your ZIP code. Gemini then picks up to 5 you may qualify for and gives a one-line reason for each. It can only choose from programs that are really in our database, so it can't make one up.
+- **Application tracking.** Each matched program becomes a progress card with a checked Apply link and a "Mark as done" toggle.
+- **AI-filled applications.** On a demo relief form, "Have Equa fill it out" fills in every field from your profile and bank data. You review it and submit it yourself.
+- **High-APR debt.** Equa finds your most expensive loan and shows what it costs you each month. It also shows how much sooner you'd pay it off if utility assistance freed up that money. With one click, Gemini writes a rate-reduction request to your lender.
+- **My Toyota.** This tab is built around the Toyota Financial Services prompt. For the demo auto loan, Equa:
+  - writes a temporary-hardship deferral request
+  - suggests moving the due date to payday
+  - suggests SmartPath if the car payment is over about 10% of income
 
-The FastAPI backend supports fully asynchronous operations, optimizing database queries, API routes, and test execution for better performance. Deployment is seamless, with both backend and frontend fully deployable to Vercel, enabling quick product releases with minimal configuration.
+  Each card links to TFS's real deferral, due-date and phone resources.
+- **Plan.** An ordered to-do list built from your real numbers: free up money first, then lower the cost of debt, then apply for the rest of your matches.
+- **Equa chat.** A friendly assistant that answers using your actual bills, loans and check-up results.
 
-### Key features
-✔ End-to-end type safety – Automatically generated typed clients from the OpenAPI schema ensure seamless API contracts between frontend and backend.
+## How we built it
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui and GSAP animations. Mobile first. Server actions call a typed client generated from the backend's OpenAPI schema.
+- **Backend:** Python 3.14 + FastAPI, async SQLAlchemy on Postgres, and fastapi-users for auth.
+- **Capital One Nessie API:** Our banking backend. "Connect to bank" creates a Nessie customer and fills it with 8 weeks of realistic history: biweekly pay, rent and utility bills, a Toyota auto loan and everyday purchases. Safe to Spend, the check-up, APR impact and chat all read from Nessie, with retries for timeouts, 429s and 5xx errors.
+- **Program discovery pipeline:** A background worker that:
+  - loads federal programs from GSA's public Assistance Listings and resolves ZIP codes with Census geography data
+  - uses **SerpApi** to search for local programs and fetches the pages with an SSRF-safe, polite fetcher
+  - has **Gemini** turn each page into structured program records, which are validated and upserted
+  - manages its job queue with claims, heartbeats, retries and a SerpApi budget guard
+- **Google Gemini:** Our AI layer. It handles program matching (a forced tool call that can only return known program IDs), the lender and deferral letters, application autofill and chat.
+- **Snowflake:** An hourly, one-way analytics copy of Postgres, using key-pair auth, staged loads and deduplicating MERGEs. Views on top of it report utility burden and program coverage in aggregate. No user-level data leaves Postgres.
+- **Deploy:** The backend runs in Docker on Vultr with Postgres and Caddy (HTTPS at api.equalityfin.tech). The frontend runs on Vercel.
+- **Tooling:** We built it with Claude Code during the 24-hour sprint.
 
-✔ Hot-reload updates – The client updates automatically when backend routes change, keeping FastAPI and Next.js in sync.
+## Challenges we ran into
+- **Getting the toolchain working.** Python 3.14 and Node versions broke dependencies until we upgraded asyncpg, pydantic, pytest-asyncio and fastapi-users. Vercel also rejected Node 26, so we pinned Node 24 everywhere.
+- **Nessie loans have no interest rate field.** We estimate each loan's APR from its credit score and loan type, using published averages.
+- **Stopping the AI from making things up.** An LLM will happily invent a grant. We limited matching to known program IDs, dropped any unknown IDs it returned, and checked every application link.
+- **Scraping the web politely and safely.** We had to deal with SSRF protection, rate limits and the SerpApi budget, while making sure failed jobs retry instead of disappearing.
+- **Tone.** AI sounds clinical when it talks about money. We tuned the prompts so Equa sounds warm and never shames anyone.
 
-✔ Versatile foundation – Designed for MVPs and production-ready applications, with a pre-configured authentication system and API layer.
+## Accomplishments that we're proud of
+- An end-to-end flow: connect a bank, see Safe to Spend, get matched to real programs, and have Equa write the letter or fill in the form.
+- A real discovery pipeline for programs that pulls actual local, state and federal programs by ZIP code, not a hard-coded list.
+- Three sponsor integrations (Capital One Nessie, Snowflake and the Toyota Financial Services prompt) that work together as one product.
+- A UI that gives clear next steps instead of dashboards full of numbers.
 
-✔ Quick deployment – Deploys a full-stack application—including authentication flow and a dashboard—on Vercel in just a few steps.
+## What we learned
+- How to make LLM output safe enough for people in financial distress, using constrained tool calls, validation and an "unknown means null" rule.
+- How to separate the operational database from the analytics warehouse, so Snowflake reporting can never break the app.
+- How to turn research on scarcity and compounding APRs into product rules: one number, one next step, no shame.
 
-✔ Production-ready authentication – Includes a pre-configured authentication system and dashboard interface, allowing you to immediately start development with user management features.
+## What's next for Equa
+- Use real bank connections through Plaid instead of Nessie.
+- Submit applications directly where programs allow it, and remind users about renewals.
+- Turn the Toyota retention flow into a platform that any lender or utility can use to offer hardship options before a customer defaults.
 
-## Technology stack
-This template features a carefully selected set of technologies to ensure efficiency, scalability, and ease of use:
+## Run it locally
+You need Python 3.14, Node 24 and Docker. See [docs/get-started.md](docs/get-started.md) for the full steps. In short:
 
-- Zod + TypeScript – Type safety and schema validation across the stack.
-- fastapi-users – Complete authentication system with:
-    - Secure password hashing
-    - JWT authentication
-- Email-based password recovery
-- shadcn/ui – Prebuilt React components with Tailwind CSS.
-- OpenAPI-fetch – Fully typed client generation from the OpenAPI schema.
-- UV – Simplified dependency management and packaging.
-- Docker Compose – Consistent environments for development and production.
-- Pre-commit hooks – Automated code linting, formatting, and validation before commits.
-- Vercel Deployment – Serverless backend and scalable frontend, deployable with minimal configuration.
+```bash
+docker compose up -d db db_test
+cd fastapi_backend && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/alembic upgrade head
+make start-backend   # API keys go in fastapi_backend/.env
+make start-frontend
+```
 
-This is a partial list of the technologies included in the template. For a complete overview, visit our [Technology selection](https://vintasoftware.github.io/nextjs-fastapi-template/technology-selection/) page.
-
-## Get Started
-
-To use this template, visit our [Get Started](https://vintasoftware.github.io/nextjs-fastapi-template/get-started/) and follow the steps.
-
-## Using the template? Let's talk!
-
-We’re always curious to see how the community builds on top of it and where it’s being used. To collaborate:
-
-- Join the conversation on [GitHub Discussions](https://github.com/vintasoftware/nextjs-fastapi-template/discussions)
-- Report bugs or suggest improvements via [issues](https://github.com/vintasoftware/nextjs-fastapi-template/issues)
-- Check the [Contributing](https://vintasoftware.github.io/nextjs-fastapi-template/contributing/) guide to get involved
-
-This project is maintained by [Vinta Software](https://www.vinta.com.br/) and is actively used in production systems we build for clients. Talk to our expert consultants — get a free technical review: contact@vinta.com.br.
-
-*Disclaimer: This project is not affiliated with Vercel.*
+Built on the [Next.js FastAPI Template](https://github.com/vintasoftware/nextjs-fastapi-template) by Vinta Software.
