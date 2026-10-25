@@ -11,20 +11,14 @@ import { EquaChat } from "@/components/dashboard/equa-chat";
 import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
 import { ProgramsNearYou } from "@/components/dashboard/programs-near-you";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
-import { SpendingRingGrid } from "@/components/dashboard/spending-ring";
+import { MoneyCheckup } from "@/components/dashboard/money-checkup";
+import { ProgramMatches } from "@/components/dashboard/program-matches";
 import {
   StatusProgressBar,
   type ProgressStatus,
 } from "@/components/dashboard/status-progress-bar";
 
 // Placeholder data until the Nessie/Snowflake endpoints exist.
-const SAMPLE_SPENDING = [
-  { label: "Groceries", spent: 120, limit: 200 },
-  { label: "Gas", spent: 170, limit: 200 },
-  { label: "Dining", spent: 130, limit: 100 },
-  { label: "Utilities", spent: 60, limit: 150 },
-];
-
 // Mock government benefit applications until the backend tracks real ones.
 const SAMPLE_APPLICATIONS: {
   id: string;
@@ -68,12 +62,8 @@ function OverviewTab() {
   return (
     <div className="grid gap-6">
       <SafeToSpendRing />
-      <section className="grid gap-4">
-        <h2 className="text-lg font-semibold">
-          Here&apos;s how your spending looks this month
-        </h2>
-        <SpendingRingGrid items={SAMPLE_SPENDING} />
-      </section>
+      <MoneyCheckup />
+      <ProgramMatches />
     </div>
   );
 }

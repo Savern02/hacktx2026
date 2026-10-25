@@ -1,5 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import get_async_session
+from app.discovery.models import Program
+from app.finance.models import FinancialInsight
 from app.models import User
 from app.routes.balance import get_upcoming_bills
 from app.schemas import ChatRequest, ChatResponse
@@ -28,33 +34,59 @@ Rules:
 - Don't invent numbers. Only use the user's figures given below."""
 
 
-async def build_user_context(user: User) -> str:
+async def build_user_context(session: AsyncSession, user: User) -> str:
     if user.nessie_customer_id is None:
         return "No bank account is linked yet."
     try:
         balance = await nessie_service.get_checking_balance(user.nessie_customer_id)
+        bills = await get_upcoming_bills(user.nessie_customer_id)
     except nessie_service.NessieError:
         return "The user's bank data is unavailable right now."
-    bills = get_upcoming_bills()
     bills_total = sum(b.amount for b in bills)
     bill_lines = "\n".join(
         f"- {b.name}: ${b.amount:,.2f} due {b.due_date:%b %d}" for b in bills
     )
-    return (
+    context = (
         f"Checking balance: ${balance:,.2f}\n"
-        f"Upcoming bills:\n{bill_lines}\n"
+        f"Upcoming bills:\n{bill_lines or '- none'}\n"
         f"Safe to Spend (balance minus bills): ${balance - bills_total:,.2f}"
     )
+    insight = await session.get(FinancialInsight, user.id)
+    if insight and insight.nessie_customer_id == user.nessie_customer_id:
+        h = insight.health
+        checks = {**h["rule_50_30_20"], **h["rule_28_36"]}
+        context += (
+            f"\nTake-home income: ${h['income_monthly']:,.0f}/month\n"
+            + "\n".join(
+                f"- {name}: {c['pct']}% of income (target {c['target']}%) {'OK' if c['ok'] else 'over'}"
+                for name, c in checks.items()
+            )
+        )
+        recs = (insight.recommendations or {}).get("recommendations") or []
+        if recs:
+            names = (
+                await session.execute(
+                    select(Program.name).where(
+                        Program.id.in_([r["program_id"] for r in recs])
+                    )
+                )
+            ).scalars()
+            context += (
+                "\nEqua already suggested these programs on the Overview tab: "
+                + "; ".join(names)
+            )
+    return context
 
 
 @router.post("", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
     user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
 ):
     system_prompt = (
         f"{EQUA_PROMPT}\n\nThe user's current finances:\n"
-        f"{await build_user_context(user)}"
+        f"{await build_user_context(session, user)}"
     )
     try:
         reply = await gemini_service.generate_reply(system_prompt, request.messages)

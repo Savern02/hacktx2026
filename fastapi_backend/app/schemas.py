@@ -100,3 +100,49 @@ class ProgramsForUser(BaseModel):
     local: list[ProgramRead]
     federal: list[ProgramRead]
     federal_total: int
+
+
+class RuleCheck(BaseModel):
+    amount: float
+    pct: float | None  # share of monthly income; None when no income was seen
+    target: float
+    ok: bool
+
+
+class Rule503020(BaseModel):
+    needs: RuleCheck
+    wants: RuleCheck
+    savings: RuleCheck
+
+
+class Rule2836(BaseModel):
+    housing: RuleCheck
+    debt: RuleCheck  # housing + debt payments
+
+
+class SpendingLine(BaseModel):
+    label: str
+    bucket: Literal["needs", "wants", "housing", "debt"]
+    monthly: float
+
+
+class FinancialHealth(BaseModel):
+    window_days: int
+    income_monthly: float
+    income_note: str
+    rule_50_30_20: Rule503020
+    rule_28_36: Rule2836
+    categories: list[SpendingLine]
+    struggling: list[str]
+
+
+class ProgramMatch(BaseModel):
+    program: ProgramRead
+    reason: str
+    confidence: float
+
+
+class ProgramMatches(BaseModel):
+    summary: str
+    matches: list[ProgramMatch]
+    computed_at: str

@@ -68,7 +68,7 @@ export function SettingsTab() {
       setProfile((p) => p && { ...p, nessie_customer_id: result.customerId });
       setBankNotice({
         tone: "ok",
-        text: "You're connected! Check Overview to see what's safe to spend.",
+        text: "You're connected! Equa loaded 8 weeks of sample transactions. Check Overview for your money check-up.",
       });
     } else {
       setBankNotice({ tone: "error", text: result.message });
@@ -182,7 +182,7 @@ export function SettingsTab() {
             <p className="text-sm text-muted-foreground">
               {connected
                 ? "Equa is connected to your demo bank account."
-                : "Connect a demo bank account so Equa can see your balance."}
+                : "Connect a demo bank account so Equa can check your spending and find programs for you."}
             </p>
           </div>
         </div>

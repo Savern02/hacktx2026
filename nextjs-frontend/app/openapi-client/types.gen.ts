@@ -139,6 +139,34 @@ export type ErrorModel = {
 };
 
 /**
+ * FinancialHealth
+ */
+export type FinancialHealth = {
+  /**
+   * Window Days
+   */
+  window_days: number;
+  /**
+   * Income Monthly
+   */
+  income_monthly: number;
+  /**
+   * Income Note
+   */
+  income_note: string;
+  rule_50_30_20: Rule503020;
+  rule_28_36: Rule2836;
+  /**
+   * Categories
+   */
+  categories: Array<SpendingLine>;
+  /**
+   * Struggling
+   */
+  struggling: Array<string>;
+};
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -203,6 +231,39 @@ export type PlaceRef = {
    * Name
    */
   name: string;
+};
+
+/**
+ * ProgramMatch
+ */
+export type ProgramMatch = {
+  program: ProgramRead;
+  /**
+   * Reason
+   */
+  reason: string;
+  /**
+   * Confidence
+   */
+  confidence: number;
+};
+
+/**
+ * ProgramMatches
+ */
+export type ProgramMatches = {
+  /**
+   * Summary
+   */
+  summary: string;
+  /**
+   * Matches
+   */
+  matches: Array<ProgramMatch>;
+  /**
+   * Computed At
+   */
+  computed_at: string;
 };
 
 /**
@@ -280,6 +341,63 @@ export type ProgramsForUser = {
    * Federal Total
    */
   federal_total: number;
+};
+
+/**
+ * Rule2836
+ */
+export type Rule2836 = {
+  housing: RuleCheck;
+  debt: RuleCheck;
+};
+
+/**
+ * Rule503020
+ */
+export type Rule503020 = {
+  needs: RuleCheck;
+  wants: RuleCheck;
+  savings: RuleCheck;
+};
+
+/**
+ * RuleCheck
+ */
+export type RuleCheck = {
+  /**
+   * Amount
+   */
+  amount: number;
+  /**
+   * Pct
+   */
+  pct: number | null;
+  /**
+   * Target
+   */
+  target: number;
+  /**
+   * Ok
+   */
+  ok: boolean;
+};
+
+/**
+ * SpendingLine
+ */
+export type SpendingLine = {
+  /**
+   * Label
+   */
+  label: string;
+  /**
+   * Bucket
+   */
+  bucket: "needs" | "wants" | "housing" | "debt";
+  /**
+   * Monthly
+   */
+  monthly: number;
 };
 
 /**
@@ -955,6 +1073,70 @@ export type ChangeMyLocationResponses = {
 
 export type ChangeMyLocationResponse =
   ChangeMyLocationResponses[keyof ChangeMyLocationResponses];
+
+export type GetMyFinancialHealthData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Refresh
+     */
+    refresh?: boolean;
+  };
+  url: "/finance/me/health";
+};
+
+export type GetMyFinancialHealthErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetMyFinancialHealthError =
+  GetMyFinancialHealthErrors[keyof GetMyFinancialHealthErrors];
+
+export type GetMyFinancialHealthResponses = {
+  /**
+   * Successful Response
+   */
+  200: FinancialHealth;
+};
+
+export type GetMyFinancialHealthResponse =
+  GetMyFinancialHealthResponses[keyof GetMyFinancialHealthResponses];
+
+export type GetMyProgramMatchesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Refresh
+     */
+    refresh?: boolean;
+  };
+  url: "/finance/me/program-matches";
+};
+
+export type GetMyProgramMatchesErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetMyProgramMatchesError =
+  GetMyProgramMatchesErrors[keyof GetMyProgramMatchesErrors];
+
+export type GetMyProgramMatchesResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProgramMatches;
+};
+
+export type GetMyProgramMatchesResponse =
+  GetMyProgramMatchesResponses[keyof GetMyProgramMatchesResponses];
 
 export type ClientOptions = {
   baseURL: `${string}://openapi.json` | (string & {});

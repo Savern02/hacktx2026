@@ -898,6 +898,102 @@
           }
         ]
       }
+    },
+    "/finance/me/health": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Get My Financial Health",
+        "operationId": "get_my_financial_health",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialHealth"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/finance/me/program-matches": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Get My Program Matches",
+        "operationId": "get_my_program_matches",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramMatches"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1101,6 +1197,53 @@
         ],
         "title": "ErrorModel"
       },
+      "FinancialHealth": {
+        "properties": {
+          "window_days": {
+            "type": "integer",
+            "title": "Window Days"
+          },
+          "income_monthly": {
+            "type": "number",
+            "title": "Income Monthly"
+          },
+          "income_note": {
+            "type": "string",
+            "title": "Income Note"
+          },
+          "rule_50_30_20": {
+            "$ref": "#/components/schemas/Rule503020"
+          },
+          "rule_28_36": {
+            "$ref": "#/components/schemas/Rule2836"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/SpendingLine"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "struggling": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Struggling"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window_days",
+          "income_monthly",
+          "income_note",
+          "rule_50_30_20",
+          "rule_28_36",
+          "categories",
+          "struggling"
+        ],
+        "title": "FinancialHealth"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1225,6 +1368,54 @@
           "name"
         ],
         "title": "PlaceRef"
+      },
+      "ProgramMatch": {
+        "properties": {
+          "program": {
+            "$ref": "#/components/schemas/ProgramRead"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "program",
+          "reason",
+          "confidence"
+        ],
+        "title": "ProgramMatch"
+      },
+      "ProgramMatches": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramMatch"
+            },
+            "type": "array",
+            "title": "Matches"
+          },
+          "computed_at": {
+            "type": "string",
+            "title": "Computed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "matches",
+          "computed_at"
+        ],
+        "title": "ProgramMatches"
       },
       "ProgramRead": {
         "properties": {
@@ -1393,6 +1584,106 @@
           "federal_total"
         ],
         "title": "ProgramsForUser"
+      },
+      "Rule2836": {
+        "properties": {
+          "housing": {
+            "$ref": "#/components/schemas/RuleCheck"
+          },
+          "debt": {
+            "$ref": "#/components/schemas/RuleCheck"
+          }
+        },
+        "type": "object",
+        "required": [
+          "housing",
+          "debt"
+        ],
+        "title": "Rule2836"
+      },
+      "Rule503020": {
+        "properties": {
+          "needs": {
+            "$ref": "#/components/schemas/RuleCheck"
+          },
+          "wants": {
+            "$ref": "#/components/schemas/RuleCheck"
+          },
+          "savings": {
+            "$ref": "#/components/schemas/RuleCheck"
+          }
+        },
+        "type": "object",
+        "required": [
+          "needs",
+          "wants",
+          "savings"
+        ],
+        "title": "Rule503020"
+      },
+      "RuleCheck": {
+        "properties": {
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct"
+          },
+          "target": {
+            "type": "number",
+            "title": "Target"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount",
+          "pct",
+          "target",
+          "ok"
+        ],
+        "title": "RuleCheck"
+      },
+      "SpendingLine": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "bucket": {
+            "type": "string",
+            "enum": [
+              "needs",
+              "wants",
+              "housing",
+              "debt"
+            ],
+            "title": "Bucket"
+          },
+          "monthly": {
+            "type": "number",
+            "title": "Monthly"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "bucket",
+          "monthly"
+        ],
+        "title": "SpendingLine"
       },
       "UpcomingBill": {
         "properties": {

@@ -8,6 +8,7 @@ from app.config import settings
 from app.routes.balance import router as balance_router
 from app.routes.chat import router as chat_router
 from app.routes.programs import router as programs_router
+from app.routes.finance import router as finance_router
 
 app = FastAPI(
     generate_unique_id_function=simple_generate_unique_route_id,
@@ -52,5 +53,6 @@ app.include_router(
 app.include_router(balance_router, prefix="/users")
 app.include_router(chat_router, prefix="/chat")
 app.include_router(programs_router, prefix="/programs")
+app.include_router(finance_router, prefix="/finance")
 
 add_pagination(app)

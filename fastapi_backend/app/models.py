@@ -16,3 +16,4 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
 # Register the program discovery tables on Base.metadata (Alembic + tests).
 from app.discovery import models as discovery_models  # noqa: E402, F401
+from app.finance import models as finance_models  # noqa: E402, F401

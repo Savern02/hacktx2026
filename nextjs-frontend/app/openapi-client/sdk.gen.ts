@@ -56,6 +56,12 @@ import type {
   ChangeMyLocationData,
   ChangeMyLocationResponses,
   ChangeMyLocationErrors,
+  GetMyFinancialHealthData,
+  GetMyFinancialHealthResponses,
+  GetMyFinancialHealthErrors,
+  GetMyProgramMatchesData,
+  GetMyProgramMatchesResponses,
+  GetMyProgramMatchesErrors,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -470,5 +476,51 @@ export const changeMyLocation = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Get My Financial Health
+ */
+export const getMyFinancialHealth = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyFinancialHealthData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyFinancialHealthResponses,
+    GetMyFinancialHealthErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/health",
+    ...options,
+  });
+};
+
+/**
+ * Get My Program Matches
+ */
+export const getMyProgramMatches = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyProgramMatchesData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyProgramMatchesResponses,
+    GetMyProgramMatchesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/program-matches",
+    ...options,
   });
 };

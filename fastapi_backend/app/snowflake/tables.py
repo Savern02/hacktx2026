@@ -123,7 +123,15 @@ SYNCED_TABLES: tuple[SyncedTable, ...] = (
 )
 
 # Never synced (Section 16). Checked by tests so a future edit can't add them.
-NEVER_SYNCED = ("user", "users", "user_locations", "zip_county", "zcta_place")
+NEVER_SYNCED = (
+    "user",
+    "users",
+    "user_locations",
+    "zip_county",
+    "zcta_place",
+    "financial_insights",
+    "nessie_merchants",
+)
 
 
 @dataclass(frozen=True)
