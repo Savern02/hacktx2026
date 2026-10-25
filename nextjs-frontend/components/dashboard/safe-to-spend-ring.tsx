@@ -73,11 +73,15 @@ export function SafeToSpendRing({ className }: { className?: string }) {
   const firstName = useFirstName();
 
   const [open, setOpen] = useState(false);
+  const [showAllBills, setShowAllBills] = useState(false);
   const loading = state.kind === "loading";
   const data = state.kind === "ready" ? state.data : null;
   const liquidity = data
     ? getLiquidity(data.balance, data.safe_to_spend)
     : null;
+  const hiddenBills = data ? data.upcoming_bills.slice(NEXT_BILLS) : [];
+  // Bills come sorted by due date, so the last one ends the cycle.
+  const lastBillDue = data?.upcoming_bills.at(-1)?.due_date ?? "";
 
   return (
     <section
@@ -204,12 +208,18 @@ export function SafeToSpendRing({ className }: { className?: string }) {
                 text="Your balance minus bills due in the next month. The rest is yours to use."
               />
             </p>
-            <ul className="divide-y rounded-md border text-left text-sm">
-              {/* Only the next few: the total is in the sentence above, and rent and
-                loan payments show up again in the check-up and APR panel. */}
-              {data.upcoming_bills.slice(0, NEXT_BILLS).map((bill) => (
+            <ul
+              id="upcoming-bills-list"
+              className="divide-y rounded-md border text-left text-sm"
+            >
+              {/* The next few by default; expand to see every bill through the end of
+                  this cycle (the same bills the total above counts). */}
+              {(showAllBills
+                ? data.upcoming_bills
+                : data.upcoming_bills.slice(0, NEXT_BILLS)
+              ).map((bill) => (
                 <li
-                  key={bill.name}
+                  key={`${bill.name}-${bill.due_date}`}
                   className="flex items-center justify-between gap-3 px-3 py-2"
                 >
                   <span className="min-w-0">
@@ -225,19 +235,32 @@ export function SafeToSpendRing({ className }: { className?: string }) {
                   </span>
                 </li>
               ))}
-              {data.upcoming_bills.length > NEXT_BILLS ? (
-                <li className="px-3 py-2 text-xs text-muted-foreground">
-                  +{data.upcoming_bills.length - NEXT_BILLS} more{" "}
-                  {data.upcoming_bills.length - NEXT_BILLS === 1
-                    ? "bill"
-                    : "bills"}{" "}
-                  this month (
-                  {usd.format(
-                    data.upcoming_bills
-                      .slice(NEXT_BILLS)
-                      .reduce((sum, b) => sum + b.amount, 0),
-                  )}
-                  )
+              {hiddenBills.length > 0 ? (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setShowAllBills((s) => !s)}
+                    aria-expanded={showAllBills}
+                    aria-controls="upcoming-bills-list"
+                    className="flex min-h-11 w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                  >
+                    <span>
+                      {showAllBills
+                        ? "Show fewer"
+                        : `+${hiddenBills.length} more ${
+                            hiddenBills.length === 1 ? "bill" : "bills"
+                          } through ${shortDate.format(new Date(lastBillDue))} (${usd.format(
+                            hiddenBills.reduce((sum, b) => sum + b.amount, 0),
+                          )})`}
+                    </span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      className={cn(
+                        "h-3.5 w-3.5 shrink-0 transition-transform motion-reduce:transition-none",
+                        showAllBills && "rotate-180",
+                      )}
+                    />
+                  </button>
                 </li>
               ) : null}
             </ul>
