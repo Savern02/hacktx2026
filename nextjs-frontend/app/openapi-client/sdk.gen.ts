@@ -50,6 +50,12 @@ import type {
   SendMessageData,
   SendMessageResponses,
   SendMessageErrors,
+  GetMyProgramsData,
+  GetMyProgramsResponses,
+  GetMyProgramsErrors,
+  ChangeMyLocationData,
+  ChangeMyLocationResponses,
+  ChangeMyLocationErrors,
 } from "./types.gen";
 import { client } from "./client.gen";
 
@@ -408,6 +414,57 @@ export const sendMessage = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/chat",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get My Programs
+ */
+export const getMyPrograms = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyProgramsData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyProgramsResponses,
+    GetMyProgramsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/programs/me",
+    ...options,
+  });
+};
+
+/**
+ * Change My Location
+ * 'Not right? Change city.' Pick one of the alternates; it's never auto-overwritten.
+ */
+export const changeMyLocation = <ThrowOnError extends boolean = false>(
+  options: Options<ChangeMyLocationData, ThrowOnError>,
+) => {
+  return (options.client ?? client).put<
+    ChangeMyLocationResponses,
+    ChangeMyLocationErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/programs/me/location",
     ...options,
     headers: {
       "Content-Type": "application/json",

@@ -149,6 +149,140 @@ export type HttpValidationError = {
 };
 
 /**
+ * LocationRead
+ */
+export type LocationRead = {
+  /**
+   * Zip
+   */
+  zip: string;
+  /**
+   * Method
+   */
+  method: string;
+  /**
+   * Display Name
+   */
+  display_name: string | null;
+  state: PlaceRef | null;
+  county: PlaceRef | null;
+  city: PlaceRef | null;
+  /**
+   * User Confirmed
+   */
+  user_confirmed: boolean;
+  /**
+   * Alternates
+   */
+  alternates: Array<PlaceRef>;
+};
+
+/**
+ * LocationUpdate
+ */
+export type LocationUpdate = {
+  /**
+   * Jurisdiction Id
+   */
+  jurisdiction_id: number;
+};
+
+/**
+ * PlaceRef
+ */
+export type PlaceRef = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Level
+   */
+  level: string;
+  /**
+   * Name
+   */
+  name: string;
+};
+
+/**
+ * ProgramRead
+ */
+export type ProgramRead = {
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Jurisdiction
+   */
+  jurisdiction: string;
+  /**
+   * Level
+   */
+  level: string;
+  /**
+   * Administering Agency
+   */
+  administering_agency: string | null;
+  /**
+   * Categories
+   */
+  categories: Array<string>;
+  /**
+   * Summary
+   */
+  summary: string | null;
+  /**
+   * Eligibility Summary
+   */
+  eligibility_summary: string | null;
+  /**
+   * How To Apply
+   */
+  how_to_apply: string | null;
+  /**
+   * Apply Url
+   */
+  apply_url: string | null;
+  /**
+   * Info Url
+   */
+  info_url: string | null;
+  /**
+   * Phone
+   */
+  phone: string | null;
+};
+
+/**
+ * ProgramsForUser
+ */
+export type ProgramsForUser = {
+  location: LocationRead | null;
+  /**
+   * Gathering
+   */
+  gathering: Array<string>;
+  /**
+   * Local
+   */
+  local: Array<ProgramRead>;
+  /**
+   * Federal
+   */
+  federal: Array<ProgramRead>;
+  /**
+   * Federal Total
+   */
+  federal_total: number;
+};
+
+/**
  * UpcomingBill
  */
 export type UpcomingBill = {
@@ -190,6 +324,10 @@ export type UserCreate = {
    * Is Verified
    */
   is_verified?: boolean | null;
+  /**
+   * Zip Code
+   */
+  zip_code: string;
 };
 
 /**
@@ -751,6 +889,72 @@ export type SendMessageResponses = {
 
 export type SendMessageResponse =
   SendMessageResponses[keyof SendMessageResponses];
+
+export type GetMyProgramsData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Q
+     */
+    q?: string | null;
+    /**
+     * Federal Limit
+     */
+    federal_limit?: number;
+    /**
+     * Federal Offset
+     */
+    federal_offset?: number;
+  };
+  url: "/programs/me";
+};
+
+export type GetMyProgramsErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetMyProgramsError = GetMyProgramsErrors[keyof GetMyProgramsErrors];
+
+export type GetMyProgramsResponses = {
+  /**
+   * Successful Response
+   */
+  200: ProgramsForUser;
+};
+
+export type GetMyProgramsResponse =
+  GetMyProgramsResponses[keyof GetMyProgramsResponses];
+
+export type ChangeMyLocationData = {
+  body: LocationUpdate;
+  path?: never;
+  query?: never;
+  url: "/programs/me/location";
+};
+
+export type ChangeMyLocationErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type ChangeMyLocationError =
+  ChangeMyLocationErrors[keyof ChangeMyLocationErrors];
+
+export type ChangeMyLocationResponses = {
+  /**
+   * Successful Response
+   */
+  200: LocationRead;
+};
+
+export type ChangeMyLocationResponse =
+  ChangeMyLocationResponses[keyof ChangeMyLocationResponses];
 
 export type ClientOptions = {
   baseURL: `${string}://openapi.json` | (string & {});

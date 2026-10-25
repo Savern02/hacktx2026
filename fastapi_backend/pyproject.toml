@@ -12,7 +12,11 @@ dependencies = [
     "pydantic>=2.12.0,<3",
     "pydantic-settings>=2.5.2,<3",
     "fastapi-mail>=1.4.1,<2",
-    "fastapi-pagination==0.13.3"
+    "fastapi-pagination==0.13.3",
+    "beautifulsoup4>=4.15.0,<5",
+    "pypdf>=6.19.0,<6.20",
+    "tldextract>=5.4.0,<6",
+    "pyyaml>=6.0.3,<7",
 ]
 
 [dependency-groups]

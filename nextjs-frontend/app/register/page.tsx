@@ -51,6 +51,27 @@ export default function Page() {
             </div>
             <div className="grid gap-3">
               <Label
+                htmlFor="zip_code"
+                className="text-gray-700 dark:text-gray-300"
+              >
+                ZIP code
+              </Label>
+              <Input
+                id="zip_code"
+                name="zip_code"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                placeholder="78702"
+                required
+                className="border-gray-300 dark:border-gray-600"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Equa uses this to find programs near you.
+              </p>
+              <FieldError state={state} field="zip_code" />
+            </div>
+            <div className="grid gap-3">
+              <Label
                 htmlFor="password"
                 className="text-gray-700 dark:text-gray-300"
               >

@@ -12,3 +12,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     zip_code: Mapped[str | None] = mapped_column(String(5), nullable=True)
     # Mock bank customer in Capital One Nessie, set by "Connect to bank" in Settings.
     nessie_customer_id: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+# Register the program discovery tables on Base.metadata (Alembic + tests).
+from app.discovery import models as discovery_models  # noqa: E402, F401

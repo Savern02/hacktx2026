@@ -1,0 +1,30 @@
+{
+  "page_publisher": "City of Austin",
+  "programs": [
+    {
+      "related_federal_program": null,
+      "jurisdiction_level": "city",
+      "audience": "individual",
+      "evidence": {
+        "name": "Customer Assistance Program (CAP)",
+        "eligibility": "Households that receive Medicaid, SNAP, or other qualifying assistance, or whose income is at or below 200% of the federal poverty level, may qualify.",
+        "apply_url": "Apply for CAP online"
+      },
+      "categories": [
+        "utilities"
+      ],
+      "how_to_apply": "Apply online at https://www.austintexas.gov/cap/apply or call 512-494-9400.",
+      "benefit_summary": "10% discount on electric charges and reduced water and wastewater fees.",
+      "ends_on": null,
+      "summary": "The Customer Assistance Program (CAP) helps income-qualified Austin Energy and Austin Water customers reduce their monthly electric, water, and wastewater bills.",
+      "name": "Customer Assistance Program (CAP)",
+      "jurisdiction_name": "Austin",
+      "confidence": 1,
+      "apply_url": "https://www.austintexas.gov/cap/apply",
+      "is_active": "yes",
+      "phone": "512-494-9400",
+      "eligibility_summary": "Households receiving Medicaid, SNAP, or other qualifying assistance, or with income at or below 200% of the federal poverty level.",
+      "administering_agency": "City of Austin (Austin Energy and Austin Water)"
+    }
+  ]
+}

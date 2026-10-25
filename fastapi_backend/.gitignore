@@ -1,1 +1,4 @@
 .vercel
+
+# Downloaded reference data (Census, HUD) and importer state
+data/

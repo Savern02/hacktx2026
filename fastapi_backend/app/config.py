@@ -44,7 +44,7 @@ class Settings(BaseSettings):
 
     # Google Gemini (Equa chat)
     GEMINI_KEY: str | None = None
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.5-flash"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

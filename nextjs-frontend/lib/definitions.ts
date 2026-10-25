@@ -21,9 +21,17 @@ export const passwordResetConfirmSchema = z
     path: ["passwordConfirm"],
   });
 
+export const zipCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{5}(-\d{4})?$/, {
+    message: "Zip codes are 5 digits, like 78702.",
+  });
+
 export const registerSchema = z.object({
   password: passwordSchema,
   email: z.string().email({ message: "Invalid email address" }),
+  zip_code: zipCodeSchema,
 });
 
 export const loginSchema = z.object({

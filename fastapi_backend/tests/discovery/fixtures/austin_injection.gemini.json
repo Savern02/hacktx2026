@@ -1,0 +1,30 @@
+{
+  "programs": [
+    {
+      "how_to_apply": "Apply online using the provided link.",
+      "apply_url": "https://www.austintexas.gov/rent-help/apply",
+      "administering_agency": "City of Austin",
+      "jurisdiction_level": "city",
+      "eligibility_summary": "Austin renters with a household income at or below 80% of the Area Median Income (AMI) who are facing financial hardship.",
+      "name": "City of Austin Emergency Rental Assistance",
+      "related_federal_program": null,
+      "confidence": 0.95,
+      "benefit_summary": "Provides rental assistance to Austin renters who are behind on rent due to financial hardship.",
+      "summary": "The City of Austin Emergency Rental Assistance program provides financial aid to eligible Austin renters who have fallen behind on rent due to financial hardship.",
+      "jurisdiction_name": "Austin",
+      "categories": [
+        "housing"
+      ],
+      "audience": "individual",
+      "is_active": "yes",
+      "phone": null,
+      "evidence": {
+        "apply_url": "Apply for rental assistance",
+        "name": "City of Austin Emergency Rental Assistance",
+        "eligibility": "Eligibility: Austin renters with household income at or below 80% of the area median income."
+      },
+      "ends_on": null
+    }
+  ],
+  "page_publisher": "City of Austin"
+}

@@ -1,0 +1,23 @@
+# Aggregators and lead-generation sites: never fetched (Section 9, step 4).
+domains:
+  - benefits.com
+  - govbenefits.org
+  - findhelp.org
+  - auntbertha.com
+  - lowincomehousing.us
+  - affordablehousingonline.com
+  - needhelppayingbills.com
+  - yelp.com
+  - facebook.com
+  - x.com
+  - twitter.com
+  - instagram.com
+  - youtube.com
+  - tiktok.com
+  - reddit.com
+  - pinterest.com
+  - linkedin.com
+  - wikipedia.org
+  # SAM.gov's terms prohibit automated data gathering / web scraping of the site.
+  # Federal listings come from its public API (or GSA's public extract) instead.
+  - sam.gov

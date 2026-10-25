@@ -1,7 +1,7 @@
 import uuid
 import re
 
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import Depends, Request
 from fastapi_users import (
@@ -19,6 +19,7 @@ from fastapi_users.authentication import (
 from fastapi_users.db import SQLAlchemyUserDatabase
 
 from .config import settings
+from .discovery.coverage import on_zip_saved
 from .database import get_user_db
 from .email import send_reset_password_email
 from .models import User
@@ -32,7 +33,18 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     verification_token_secret = settings.VERIFICATION_SECRET_KEY
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
-        print(f"User {user.id} has registered.")
+        # Local-only ZIP lookup + coverage check; discovery itself runs in the worker.
+        if user.zip_code:
+            await on_zip_saved(self.user_db.session, user.id, user.zip_code)
+
+    async def on_after_update(
+        self,
+        user: User,
+        update_dict: dict[str, Any],
+        request: Optional[Request] = None,
+    ):
+        if update_dict.get("zip_code"):
+            await on_zip_saved(self.user_db.session, user.id, user.zip_code)
 
     async def on_after_forgot_password(
         self, user: User, token: str, request: Optional[Request] = None

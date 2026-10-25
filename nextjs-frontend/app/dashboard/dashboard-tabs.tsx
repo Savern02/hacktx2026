@@ -9,6 +9,7 @@ import {
 } from "@/components/dashboard/sidebar";
 import { EquaChat } from "@/components/dashboard/equa-chat";
 import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
+import { ProgramsNearYou } from "@/components/dashboard/programs-near-you";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { SpendingRingGrid } from "@/components/dashboard/spending-ring";
 import {
@@ -79,19 +80,22 @@ function OverviewTab() {
 
 function ProgramsTab() {
   return (
-    <section className="grid gap-4">
-      <h2 className="text-lg font-semibold">Your applications</h2>
-      <ul className="grid gap-3 md:grid-cols-2">
-        {SAMPLE_APPLICATIONS.map((app) => (
-          <li key={app.id} className="rounded-lg border bg-card p-4">
-            <StatusProgressBar status={app.status} label={app.name} />
-            <p className="mt-2 text-sm text-muted-foreground">
-              {app.description}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className="grid gap-8">
+      <ProgramsNearYou />
+      <section className="grid gap-4">
+        <h2 className="text-lg font-semibold">Your applications</h2>
+        <ul className="grid gap-3 md:grid-cols-2">
+          {SAMPLE_APPLICATIONS.map((app) => (
+            <li key={app.id} className="rounded-lg border bg-card p-4">
+              <StatusProgressBar status={app.status} label={app.name} />
+              <p className="mt-2 text-sm text-muted-foreground">
+                {app.description}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }
 

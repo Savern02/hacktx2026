@@ -17,6 +17,24 @@ services:
       - ./local-shared-data:/app/shared-data
     depends_on:
       - db
+  # Program discovery worker: drains ingestion_jobs (docs/program-discovery-pipeline.md).
+  # Every SerpApi, page-fetch and LLM call happens here, never in the API.
+  worker:
+    build:
+      context: fastapi_backend
+    command: python -m commands.worker
+    env_file:
+      - ./fastapi_backend/.env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/mydatabase
+    networks:
+      - my_network
+    volumes:
+      - ./fastapi_backend:/app
+      - fastapi-venv:/app/.venv
+    depends_on:
+      - db
+    restart: unless-stopped
   db:
     image: postgres:17
     environment:

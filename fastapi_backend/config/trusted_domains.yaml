@@ -1,0 +1,7 @@
+# Admin-curated non-.gov sources (tier 3): 211 providers, legal aid, etc.
+# Tier 3 is fetched normally but never auto-published.
+domains:
+  - 211texas.org
+  - texaslawhelp.org
+  - lawhelp.org
+  - 211.org

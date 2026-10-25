@@ -773,6 +773,131 @@
           }
         ]
       }
+    },
+    "/programs/me": {
+      "get": {
+        "tags": [
+          "programs"
+        ],
+        "summary": "Get My Programs",
+        "operationId": "get_my_programs",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "federal_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Federal Limit"
+            }
+          },
+          {
+            "name": "federal_offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Federal Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramsForUser"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/programs/me/location": {
+      "put": {
+        "tags": [
+          "programs"
+        ],
+        "summary": "Change My Location",
+        "description": "'Not right? Change city.' Pick one of the alternates; it's never auto-overwritten.",
+        "operationId": "change_my_location",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -989,6 +1114,286 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "LocationRead": {
+        "properties": {
+          "zip": {
+            "type": "string",
+            "title": "Zip"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "county": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user_confirmed": {
+            "type": "boolean",
+            "title": "User Confirmed"
+          },
+          "alternates": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceRef"
+            },
+            "type": "array",
+            "title": "Alternates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "zip",
+          "method",
+          "display_name",
+          "state",
+          "county",
+          "city",
+          "user_confirmed",
+          "alternates"
+        ],
+        "title": "LocationRead"
+      },
+      "LocationUpdate": {
+        "properties": {
+          "jurisdiction_id": {
+            "type": "integer",
+            "title": "Jurisdiction Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jurisdiction_id"
+        ],
+        "title": "LocationUpdate"
+      },
+      "PlaceRef": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "level",
+          "name"
+        ],
+        "title": "PlaceRef"
+      },
+      "ProgramRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "title": "Jurisdiction"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "administering_agency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Administering Agency"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "eligibility_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligibility Summary"
+          },
+          "how_to_apply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "How To Apply"
+          },
+          "apply_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apply Url"
+          },
+          "info_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Info Url"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "jurisdiction",
+          "level",
+          "administering_agency",
+          "categories",
+          "summary",
+          "eligibility_summary",
+          "how_to_apply",
+          "apply_url",
+          "info_url",
+          "phone"
+        ],
+        "title": "ProgramRead"
+      },
+      "ProgramsForUser": {
+        "properties": {
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gathering": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gathering"
+          },
+          "local": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramRead"
+            },
+            "type": "array",
+            "title": "Local"
+          },
+          "federal": {
+            "items": {
+              "$ref": "#/components/schemas/ProgramRead"
+            },
+            "type": "array",
+            "title": "Federal"
+          },
+          "federal_total": {
+            "type": "integer",
+            "title": "Federal Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "gathering",
+          "local",
+          "federal",
+          "federal_total"
+        ],
+        "title": "ProgramsForUser"
+      },
       "UpcomingBill": {
         "properties": {
           "name": {
@@ -1059,12 +1464,17 @@
             ],
             "title": "Is Verified",
             "default": false
+          },
+          "zip_code": {
+            "type": "string",
+            "title": "Zip Code"
           }
         },
         "type": "object",
         "required": [
           "email",
-          "password"
+          "password",
+          "zip_code"
         ],
         "title": "UserCreate"
       },
@@ -1210,8 +1620,7 @@
           "zip_code": {
             "anyOf": [
               {
-                "type": "string",
-                "pattern": "^\\d{5}$"
+                "type": "string"
               },
               {
                 "type": "null"
