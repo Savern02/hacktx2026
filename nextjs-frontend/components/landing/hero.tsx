@@ -1,8 +1,12 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
+
+import logo from "@/app/equity-fintech.png";
+import { Message1AiFillIcon } from "@/components/icons/message-ai-fill";
 import { useGSAP } from "@gsap/react";
 
 import { cn } from "@/lib/utils";
@@ -89,6 +93,13 @@ export function Hero() {
       </noscript>
 
       <div className="flex w-full max-w-md flex-col items-center text-center">
+        <Image
+          data-hero-intro
+          src={logo}
+          alt=""
+          priority
+          className="mb-4 h-20 w-20 sm:h-24 sm:w-24 dark:invert"
+        />
         <p
           data-hero-intro
           className="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
@@ -105,7 +116,7 @@ export function Hero() {
           data-hero-intro
           className="mt-4 text-2xl font-semibold text-gray-700 sm:text-3xl dark:text-gray-200"
         >
-          Have a problem? Use Equa.
+          Financal Stability is Accessible with Equa.
         </p>
 
         <div data-hero-float className="mt-8 w-full">
@@ -116,9 +127,9 @@ export function Hero() {
             <div className="mb-4 flex items-center gap-3 border-b border-gray-200 pb-3 dark:border-gray-700">
               <span
                 aria-hidden="true"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-sm font-bold text-white dark:bg-white dark:text-gray-900"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900"
               >
-                E
+                <Message1AiFillIcon className="h-5 w-5" />
               </span>
               <div>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">

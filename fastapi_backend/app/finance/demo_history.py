@@ -97,6 +97,7 @@ def plan_history(seed: str, today: date) -> dict[str, Any]:
         "monthly_payment": 389,
         "amount": 14200,
         "credit_score": 590 + rng.randint(0, 40),
+        # Nessie loans have no rate field; Equa estimates the APR from credit_score.
         "description": "Toyota auto loan",
     }
     return {"deposits": deposits, "purchases": purchases, "bills": bills, "loan": loan}

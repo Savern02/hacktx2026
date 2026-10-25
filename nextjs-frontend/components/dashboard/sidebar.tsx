@@ -29,6 +29,8 @@ export type DashboardSidebarProps = {
   title?: string;
   /** When set, the title links here (e.g. the homepage). */
   titleHref?: string;
+  /** Shown before the title, e.g. a logo (decorative: give images alt=""). */
+  titleIcon?: React.ReactNode;
   /** Pinned below the tabs (e.g. a logout button). Use `md:group-data-[collapsed=true]:hidden` to hide text in the collapsed rail. */
   footer?: React.ReactNode;
   /** Chat panel. When set, a button next to the title turns the sidebar into this chat space. */
@@ -46,6 +48,7 @@ export function DashboardSidebar({
   defaultTabId,
   title = "Menu",
   titleHref,
+  titleIcon,
   footer,
   chat,
   chatLabel = "Equa mode",
@@ -183,19 +186,21 @@ export function DashboardSidebar({
             <Link
               href={titleHref}
               className={cn(
-                "flex min-h-11 flex-1 items-center truncate rounded-md font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "flex min-h-11 flex-1 items-center gap-2 truncate rounded-md font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 rail && "md:hidden",
               )}
             >
+              {titleIcon}
               {title}
             </Link>
           ) : (
             <span
               className={cn(
-                "flex-1 truncate font-semibold",
+                "flex flex-1 items-center gap-2 truncate font-semibold",
                 rail && "md:hidden",
               )}
             >
+              {titleIcon}
               {title}
             </span>
           )}

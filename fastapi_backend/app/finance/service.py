@@ -8,10 +8,11 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.discovery.models import Jurisdiction, Program, UserLocation
-from app.finance import advisor
+from app.finance import advisor, apr
 from app.finance.metrics import compute_health, fetch_history
-from app.finance.models import FinancialInsight, NessieMerchant
+from app.finance.models import FinancialInsight, NessieMerchant, ProgramApplication
 from app.models import User
+from app.services import nessie_service
 
 HEALTH_TTL = timedelta(hours=1)
 RECOMMENDATIONS_TTL = timedelta(hours=24)
@@ -20,6 +21,22 @@ MAX_CANDIDATES = 200
 
 class NotConnected(Exception):
     pass
+
+
+async def get_raw_loans(user: User) -> list[dict[str, Any]]:
+    if not user.nessie_customer_id:
+        raise NotConnected
+    loans: list[dict[str, Any]] = []
+    for account_id in await nessie_service.checking_account_ids(
+        user.nessie_customer_id
+    ):
+        loans += await nessie_service.list_account_resource(account_id, "loans")
+    return loans
+
+
+async def get_apr_loans(user: User) -> list[dict[str, Any]]:
+    """Approved Nessie loans with their estimated APR, highest first."""
+    return apr.summarize_loans(await get_raw_loans(user))
 
 
 async def _insight(session: AsyncSession, user: User) -> FinancialInsight | None:
@@ -112,6 +129,13 @@ async def get_recommendations(
             "computed_at": insight.recommendations_at.isoformat()
         }
 
+    # The user's progress, so Equa's new picks build on what they've done.
+    status_rows = await session.execute(
+        select(ProgramApplication.program_id, ProgramApplication.status).where(
+            ProgramApplication.user_id == user.id
+        )
+    )
+    statuses = {pid: st for pid, st in status_rows.tuples()}
     candidates = [
         {
             "id": p.id,
@@ -119,14 +143,28 @@ async def get_recommendations(
             "jurisdiction": j.display_name,
             "eligibility": p.eligibility_summary,
             "summary": p.summary,
+            "status": statuses.get(p.id),
         }
         for p, j in await visible_programs(session, user)
+        # The user said these don't apply to them, so don't suggest them again.
+        if statuses.get(p.id) != "not-applicable"
     ]
     result = (
         await advisor.recommend(health, candidates)
         if candidates
         else {"summary": "", "recommendations": []}
     )
+    # Keep programs the user already applied to or dismissed, even when Equa
+    # doesn't pick them again, so asking again never wipes their progress.
+    picked = {r["program_id"] for r in result["recommendations"]}
+    previous = (insight.recommendations or {}) if insight else {}
+    kept = [
+        r
+        for r in previous.get("recommendations", [])
+        if statuses.get(r["program_id"]) in ("complete", "not-applicable")
+        and r["program_id"] not in picked
+    ]
+    result = {**result, "recommendations": result["recommendations"] + kept}
     await session.execute(
         insert(FinancialInsight)
         .values(

@@ -53,7 +53,8 @@ class ProgramApplication(Base):
     program_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("programs.id", ondelete="CASCADE"), primary_key=True
     )
-    status: Mapped[str] = mapped_column(Text)  # "in-progress" | "complete"
+    # "in-progress" | "complete" | "not-applicable"
+    status: Mapped[str] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

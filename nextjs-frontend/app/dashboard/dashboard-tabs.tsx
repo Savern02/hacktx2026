@@ -1,6 +1,16 @@
 "use client";
 
-import { FileText, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { useState } from "react";
+import Image from "next/image";
+import {
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Route,
+  Settings,
+} from "lucide-react";
+
+import logo from "@/app/equity-fintech.png";
 
 import { logout } from "@/components/actions/logout-action";
 import {
@@ -8,17 +18,20 @@ import {
   type SidebarTab,
 } from "@/components/dashboard/sidebar";
 import { EquaChat } from "@/components/dashboard/equa-chat";
+import { AprDashboard } from "@/components/dashboard/apr-dashboard";
 import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
+import { clearCache } from "@/lib/data-cache";
+import { PlanTab } from "@/components/dashboard/plan-tab";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { MoneyCheckup } from "@/components/dashboard/money-checkup";
 import { ProgramMatches } from "@/components/dashboard/program-matches";
 
-// Placeholder data until the Nessie/Snowflake endpoints exist.
 function OverviewTab() {
   return (
     <div className="grid gap-6">
       <SafeToSpendRing />
       <MoneyCheckup />
+      <AprDashboard />
     </div>
   );
 }
@@ -35,6 +48,12 @@ const TABS: SidebarTab[] = [
     content: <OverviewTab />,
   },
   {
+    id: "plan",
+    label: "Plan",
+    icon: Route,
+    content: <PlanTab />,
+  },
+  {
     id: "programs",
     label: "Programs",
     icon: FileText,
@@ -49,16 +68,26 @@ const TABS: SidebarTab[] = [
 ];
 
 export function DashboardTabs() {
+  // A fresh dashboard load (e.g. after logging in) starts with an empty cache,
+  // so one user never sees another's data. Switching tabs keeps it.
+  useState(clearCache);
+
   return (
     <DashboardSidebar
       title="Equa"
       titleHref="/"
+      titleIcon={
+        <Image src={logo} alt="" className="h-7 w-7 shrink-0 dark:invert" />
+      }
       chat={<EquaChat />}
       tabs={TABS}
       footer={
         <button
           type="button"
-          onClick={() => logout()}
+          onClick={() => {
+            clearCache();
+            logout();
+          }}
           aria-label="Log out"
           title="Log out"
           className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:group-data-[collapsed=true]:justify-center md:group-data-[collapsed=true]:px-0"

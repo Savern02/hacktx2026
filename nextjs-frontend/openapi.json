@@ -995,13 +995,67 @@
         }
       }
     },
+    "/finance/me/apr-impact": {
+      "get": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Get My Apr Impact",
+        "description": "The user's highest-APR debt, what it costs, and how utility help could pay it down.",
+        "operationId": "get_my_apr_impact",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AprImpact"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/finance/me/lender-request": {
+      "post": {
+        "tags": [
+          "finance"
+        ],
+        "summary": "Draft My Lender Request",
+        "description": "Equa (Gemini) drafts a rate-reduction / deferment request for the highest-APR loan.",
+        "operationId": "draft_my_lender_request",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LenderRequest"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/finance/me/applications/{program_id}": {
       "put": {
         "tags": [
           "finance"
         ],
         "summary": "Set My Application Status",
-        "description": "Mark a matched program's application as in progress or complete.",
+        "description": "Mark a matched program's application as in progress, complete, or not applicable.",
         "operationId": "set_my_application_status",
         "security": [
           {
@@ -1066,7 +1120,8 @@
             "type": "string",
             "enum": [
               "in-progress",
-              "complete"
+              "complete",
+              "not-applicable"
             ],
             "title": "Status"
           }
@@ -1084,7 +1139,8 @@
             "type": "string",
             "enum": [
               "in-progress",
-              "complete"
+              "complete",
+              "not-applicable"
             ],
             "title": "Status"
           }
@@ -1094,6 +1150,108 @@
           "status"
         ],
         "title": "ApplicationStatusUpdate"
+      },
+      "AprImpact": {
+        "properties": {
+          "loans": {
+            "items": {
+              "$ref": "#/components/schemas/AprLoan"
+            },
+            "type": "array",
+            "title": "Loans"
+          },
+          "highest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AprLoan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "utility_monthly": {
+            "type": "number",
+            "title": "Utility Monthly"
+          },
+          "payoff_with_utility_help": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PayoffPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "utility_program": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProgramMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "loans",
+          "highest",
+          "utility_monthly",
+          "payoff_with_utility_help",
+          "utility_program"
+        ],
+        "title": "AprImpact"
+      },
+      "AprLoan": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "lender": {
+            "type": "string",
+            "title": "Lender"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "apr": {
+            "type": "number",
+            "title": "Apr"
+          },
+          "apr_basis": {
+            "type": "string",
+            "title": "Apr Basis"
+          },
+          "balance": {
+            "type": "number",
+            "title": "Balance"
+          },
+          "monthly_payment": {
+            "type": "number",
+            "title": "Monthly Payment"
+          },
+          "monthly_interest": {
+            "type": "number",
+            "title": "Monthly Interest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "lender",
+          "type",
+          "apr",
+          "apr_basis",
+          "balance",
+          "monthly_payment",
+          "monthly_interest"
+        ],
+        "title": "AprLoan"
       },
       "BalanceRead": {
         "properties": {
@@ -1354,6 +1512,23 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "LenderRequest": {
+        "properties": {
+          "loan": {
+            "$ref": "#/components/schemas/AprLoan"
+          },
+          "draft": {
+            "type": "string",
+            "title": "Draft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loan",
+          "draft"
+        ],
+        "title": "LenderRequest"
+      },
       "LocationRead": {
         "properties": {
           "zip": {
@@ -1443,6 +1618,39 @@
         ],
         "title": "LocationUpdate"
       },
+      "PayoffPlan": {
+        "properties": {
+          "extra_monthly": {
+            "type": "number",
+            "title": "Extra Monthly"
+          },
+          "months_now": {
+            "type": "integer",
+            "title": "Months Now"
+          },
+          "months_with_extra": {
+            "type": "integer",
+            "title": "Months With Extra"
+          },
+          "months_sooner": {
+            "type": "integer",
+            "title": "Months Sooner"
+          },
+          "interest_saved": {
+            "type": "number",
+            "title": "Interest Saved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "extra_monthly",
+          "months_now",
+          "months_with_extra",
+          "months_sooner",
+          "interest_saved"
+        ],
+        "title": "PayoffPlan"
+      },
       "PlaceRef": {
         "properties": {
           "id": {
@@ -1494,7 +1702,8 @@
             "type": "string",
             "enum": [
               "in-progress",
-              "complete"
+              "complete",
+              "not-applicable"
             ],
             "title": "Application Status"
           }

@@ -1,13 +1,20 @@
-import { CheckCircle2, Clock } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  MinusCircle,
+  type LucideIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export type ProgressStatus = "in-progress" | "complete";
+export type ProgressStatus = "in-progress" | "complete" | "not-applicable";
 
 export interface StatusProgressBarProps {
   status: ProgressStatus;
   /** Optional title shown above the bar, e.g. "SNAP application". */
   label?: string;
+  /** Optional icon shown before the label (decorative). */
+  icon?: LucideIcon;
   className?: string;
 }
 
@@ -26,6 +33,13 @@ const STATUS_CONFIG = {
     bar: "bg-green-600 dark:bg-green-500",
     tone: "text-green-700 dark:text-green-400",
   },
+  "not-applicable": {
+    text: "Not applicable",
+    ariaText: "not applicable",
+    Icon: MinusCircle,
+    bar: "bg-gray-400 dark:bg-gray-600",
+    tone: "text-muted-foreground",
+  },
 } as const satisfies Record<
   ProgressStatus,
   {
@@ -40,6 +54,7 @@ const STATUS_CONFIG = {
 export function StatusProgressBar({
   status,
   label,
+  icon: LabelIcon,
   className,
 }: StatusProgressBarProps) {
   const { text, ariaText, Icon, bar, tone } = STATUS_CONFIG[status];
@@ -53,8 +68,11 @@ export function StatusProgressBar({
     >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         {label ? (
-          <span className="min-w-0 break-words text-base font-medium text-foreground sm:text-sm">
-            {label}
+          <span className="flex min-w-0 items-center gap-2 break-words text-base font-bold text-foreground sm:text-sm">
+            {LabelIcon ? (
+              <LabelIcon aria-hidden="true" className="h-5 w-5 shrink-0" />
+            ) : null}
+            <span className="min-w-0">{label}</span>
           </span>
         ) : null}
         <span

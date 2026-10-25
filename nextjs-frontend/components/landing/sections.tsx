@@ -14,6 +14,9 @@ import {
   Sparkles,
   UserRound,
   Wallet,
+  Brain,
+  Scale,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,15 +49,31 @@ const STEPS: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: Landmark,
     title: "Connect your bank",
-    text: "One tap links a demo bank account so Equa can see your balance and upcoming bills.",
+    text: "One tap links a your bank account, that way Equa can see your balance and upcoming bills.",
   },
   {
     icon: Sparkles,
-    title: "Get your next step",
-    text: "No spreadsheets and no guessing. Equa tells you the one thing worth doing next.",
+    title: "Get instant advice",
+    text: "No spreadsheets, no complicated analytics and no guessing. Equa tells you the one thing worth doing next.",
   },
 ];
-
+const RESEARCH: { icon: LucideIcon; title: string; text: string }[] = [
+  {
+    icon: Brain,
+    title: "The Cognitive Tax",
+    text: "Scarcity restricts cognitive bandwidth. Studies (Wang et al., 2022) show complex budgeting apps actually cause harm. Equa drops this friction to zero.",
+  },
+  {
+    icon: Scale,
+    title: "Systemic Inequality",
+    text: "The financial system extracts wealth through predatory lending and micro-fees (French & McKillop, 2016). Equa acts as an active shield against these traps.",
+  },
+  {
+    icon: Building2,
+    title: "Institutional Scaffolding",
+    text: "Education isn't enough. Research (Gale & Levine, 2010; Katnic et al., 2024) proves that bridging the gap requires proactive systems to help users, rather than just financial tips or complicated guidelines.",
+  },
+];
 const PROMISES: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: ListChecks,
@@ -142,9 +161,9 @@ export function LandingSections() {
       >
         <SectionHeading
           id="features-heading"
-          eyebrow="How Equa helps"
-          title="Money stress is a lot. Equa makes it a little lighter."
-          text="Equa is a friendly helper you can talk to. It looks at your money with you and points you to what helps."
+          eyebrow="Take control"
+          title="Finnances take time"
+          text="but Equa doesn't"
         />
         <ul className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-3">
           {FEATURES.map((f) => (
@@ -223,11 +242,42 @@ export function LandingSections() {
         </ul>
       </section>
 
+      {/* Backed by Research */}
+      <section
+        aria-labelledby="research-heading"
+        className="bg-gray-50 px-4 py-20 sm:py-24 dark:bg-gray-900"
+
+      >
+        <SectionHeading
+          id="research-heading"
+          eyebrow="The Why"
+          title="Backed by Research"
+          text="Traditional financial tools ignore the structural realities of systemic financial barriers. Equa is built on what works according to economic research."
+        />
+        <ul className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-3">
+          {RESEARCH.map((r) => (
+            <li
+              key={r.title}
+              data-reveal
+              className="rounded-2xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-800 dark:bg-gray-900"
+            >
+              <IconBadge icon={r.icon} />
+              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                {r.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                {r.text}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* Final call to action */}
       <section className="bg-gray-900 px-4 py-20 text-center sm:py-24 dark:bg-gray-800">
         <div data-reveal className="mx-auto max-w-xl">
           <h2 className="text-3xl font-bold text-white sm:text-4xl">
-            Have a problem? Use Equa.
+            Need financal help? Use Equa.
           </h2>
           <p className="mt-3 text-base text-gray-300">
             Tell Equa what&apos;s going on. You don&apos;t have to figure it out
@@ -243,7 +293,7 @@ export function LandingSections() {
       </section>
 
       <footer className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-        Equa · Equality Finances · Built at HackTX 2026
+        Equa · <a href="https://www.linkedin.com/in/jonah-sanders-/">Jonah Sanders</a> · <a href="https://hacktx26.devpost.com">Built at HackTX 2026</a>
       </footer>
     </div>
   );

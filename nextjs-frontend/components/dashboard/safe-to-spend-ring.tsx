@@ -1,16 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-
 import type { BalanceRead } from "@/app/clientService";
 import { fetchBalance } from "@/components/actions/balance-action";
 import { RingArc } from "@/components/dashboard/spending-ring";
+import { CACHE_KEYS, useCached } from "@/lib/data-cache";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
+
+const NEXT_BILLS = 2;
 
 const shortDate = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -24,7 +26,8 @@ function getLiquidity(balance: number, safeToSpend: number) {
     balance > 0 ? Math.min(Math.max(safeToSpend / balance, 0), 1) : 0;
   if (safeToSpend < 0 || fill < 0.15)
     return {
-      fill,
+      // Negative: a full red ring so the shortfall reads at a glance.
+      fill: safeToSpend < 0 ? 1 : fill,
       cue:
         safeToSpend < 0
           ? "Heads up: your bills are more than your balance"
@@ -60,24 +63,9 @@ function toState(result: Awaited<ReturnType<typeof fetchBalance>>): State {
 }
 
 export function SafeToSpendRing({ className }: { className?: string }) {
-  const [state, setState] = useState<State>({ kind: "loading" });
-
-  const load = useCallback(async () => {
-    setState({ kind: "loading" });
-    const result = await fetchBalance();
-    setState(toState(result));
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchBalance().then((result) => {
-      if (cancelled) return;
-      setState(toState(result));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { result, reload } = useCached(CACHE_KEYS.balance, fetchBalance);
+  const state: State = result ? toState(result) : { kind: "loading" };
+  const load = () => void reload();
 
   const loading = state.kind === "loading";
   const data = state.kind === "ready" ? state.data : null;
@@ -98,7 +86,13 @@ export function SafeToSpendRing({ className }: { className?: string }) {
         aria-label="Safe to spend"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={liquidity ? Math.round(liquidity.fill * 100) : undefined}
+        aria-valuenow={
+          data && liquidity
+            ? data.safe_to_spend < 0
+              ? 0
+              : Math.round(liquidity.fill * 100)
+            : undefined
+        }
         aria-valuetext={
           data && liquidity
             ? `${usd.format(data.safe_to_spend)} safe to spend, ${liquidity.cue}`
@@ -121,7 +115,12 @@ export function SafeToSpendRing({ className }: { className?: string }) {
             Safe to spend
           </span>
           {data ? (
-            <span className="text-2xl font-bold tabular-nums text-foreground">
+            <span
+              className={cn(
+                "text-2xl font-bold tabular-nums",
+                data.safe_to_spend < 0 ? liquidity?.text : "text-foreground",
+              )}
+            >
               {usd.format(data.safe_to_spend)}
             </span>
           ) : (
@@ -159,10 +158,16 @@ export function SafeToSpendRing({ className }: { className?: string }) {
           </p>
           <p className="text-sm text-muted-foreground">
             {usd.format(data.balance)} in checking, minus{" "}
-            {usd.format(data.upcoming_bills_total)} in upcoming bills
+            {usd.format(data.upcoming_bills_total)} in upcoming bills{" "}
+            <InfoTooltip
+              label="What is safe to spend?"
+              text="Your balance minus bills due in the next month. The rest is yours to use."
+            />
           </p>
           <ul className="divide-y rounded-md border text-left text-sm">
-            {data.upcoming_bills.map((bill) => (
+            {/* Only the next few: the total is in the sentence above, and rent and
+                loan payments show up again in the check-up and APR panel. */}
+            {data.upcoming_bills.slice(0, NEXT_BILLS).map((bill) => (
               <li
                 key={bill.name}
                 className="flex items-center justify-between gap-3 px-3 py-2"
@@ -180,6 +185,21 @@ export function SafeToSpendRing({ className }: { className?: string }) {
                 </span>
               </li>
             ))}
+            {data.upcoming_bills.length > NEXT_BILLS ? (
+              <li className="px-3 py-2 text-xs text-muted-foreground">
+                +{data.upcoming_bills.length - NEXT_BILLS} more{" "}
+                {data.upcoming_bills.length - NEXT_BILLS === 1
+                  ? "bill"
+                  : "bills"}{" "}
+                this month (
+                {usd.format(
+                  data.upcoming_bills
+                    .slice(NEXT_BILLS)
+                    .reduce((sum, b) => sum + b.amount, 0),
+                )}
+                )
+              </li>
+            ) : null}
           </ul>
         </div>
       ) : (

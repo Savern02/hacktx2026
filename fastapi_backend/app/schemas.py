@@ -136,7 +136,7 @@ class FinancialHealth(BaseModel):
     struggling: list[str]
 
 
-ApplicationStatus = Literal["in-progress", "complete"]
+ApplicationStatus = Literal["in-progress", "complete", "not-applicable"]
 
 
 class ProgramMatch(BaseModel):
@@ -160,3 +160,35 @@ class ProgramMatches(BaseModel):
     summary: str
     matches: list[ProgramMatch]
     computed_at: str
+
+
+class AprLoan(BaseModel):
+    name: str  # e.g. "Toyota auto loan"
+    lender: str  # e.g. "Toyota"
+    type: str
+    apr: float  # percent, e.g. 24.99
+    apr_basis: str  # e.g. "Estimated from a 610 credit score (Experian ...)"
+    balance: float
+    monthly_payment: float
+    monthly_interest: float  # interest charged this month at this APR
+
+
+class PayoffPlan(BaseModel):
+    extra_monthly: float  # freed-up cash put toward the loan each month
+    months_now: int
+    months_with_extra: int
+    months_sooner: int
+    interest_saved: float
+
+
+class AprImpact(BaseModel):
+    loans: list[AprLoan]  # highest APR first; every approved loan
+    highest: AprLoan | None
+    utility_monthly: float
+    payoff_with_utility_help: PayoffPlan | None
+    utility_program: ProgramMatch | None  # an Equa match that helps with utilities
+
+
+class LenderRequest(BaseModel):
+    loan: AprLoan
+    draft: str

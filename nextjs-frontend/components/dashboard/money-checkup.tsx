@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { CheckCircle2, CircleAlert } from "lucide-react";
 
 import type { FinancialHealth } from "@/app/clientService";
@@ -9,6 +8,8 @@ import {
   formatUsd,
   SpendingRingGrid,
 } from "@/components/dashboard/spending-ring";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { CACHE_KEYS, useCached } from "@/lib/data-cache";
 
 type State =
   | { kind: "loading" }
@@ -39,20 +40,14 @@ function Check({ ok, children }: { ok: boolean; children: React.ReactNode }) {
 }
 
 export function MoneyCheckup() {
-  const [state, setState] = useState<State>({ kind: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchFinancialHealth().then((result) => {
-      if (cancelled) return;
-      if ("data" in result) setState({ kind: "ready", data: result.data });
-      else if ("notConnected" in result) setState({ kind: "not-connected" });
-      else setState({ kind: "error", message: result.message });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { result } = useCached(CACHE_KEYS.health, fetchFinancialHealth);
+  const state: State = !result
+    ? { kind: "loading" }
+    : "data" in result
+      ? { kind: "ready", data: result.data }
+      : "notConnected" in result
+        ? { kind: "not-connected" }
+        : { kind: "error", message: result.message };
 
   if (state.kind === "loading") {
     return (
@@ -129,7 +124,12 @@ export function MoneyCheckup() {
       <ul className="grid gap-2 rounded-lg border bg-card p-4">
         <Check ok={needs.ok}>
           Needs take {share(needs.pct)} of your income. The 50/30/20 rule aims
-          for 50%.
+          for 50%.{" "}
+          <InfoTooltip
+            label="What is the 50/30/20 rule?"
+            align="end"
+            text="50% on needs, 30% on wants, 20% on savings."
+          />
         </Check>
         <Check ok={savings.ok}>
           {savings.amount > 0
@@ -138,7 +138,12 @@ export function MoneyCheckup() {
         </Check>
         <Check ok={housing.ok}>
           Housing is {share(housing.pct)} of your income. The 28/36 rule says
-          28% or less.
+          28% or less.{" "}
+          <InfoTooltip
+            label="What is the 28/36 rule?"
+            align="end"
+            text="Keep rent under 28% of income, and rent plus debt under 36%."
+          />
         </Check>
         <Check ok={debt.ok}>
           Housing plus loan payments are {share(debt.pct)}. The 28/36 rule says

@@ -11,7 +11,7 @@ export type ApplicationStatusRead = {
   /**
    * Status
    */
-  status: "in-progress" | "complete";
+  status: "in-progress" | "complete" | "not-applicable";
 };
 
 /**
@@ -21,7 +21,62 @@ export type ApplicationStatusUpdate = {
   /**
    * Status
    */
-  status: "in-progress" | "complete";
+  status: "in-progress" | "complete" | "not-applicable";
+};
+
+/**
+ * AprImpact
+ */
+export type AprImpact = {
+  /**
+   * Loans
+   */
+  loans: Array<AprLoan>;
+  highest: AprLoan | null;
+  /**
+   * Utility Monthly
+   */
+  utility_monthly: number;
+  payoff_with_utility_help: PayoffPlan | null;
+  utility_program: ProgramMatch | null;
+};
+
+/**
+ * AprLoan
+ */
+export type AprLoan = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Lender
+   */
+  lender: string;
+  /**
+   * Type
+   */
+  type: string;
+  /**
+   * Apr
+   */
+  apr: number;
+  /**
+   * Apr Basis
+   */
+  apr_basis: string;
+  /**
+   * Balance
+   */
+  balance: number;
+  /**
+   * Monthly Payment
+   */
+  monthly_payment: number;
+  /**
+   * Monthly Interest
+   */
+  monthly_interest: number;
 };
 
 /**
@@ -201,6 +256,17 @@ export type HttpValidationError = {
 };
 
 /**
+ * LenderRequest
+ */
+export type LenderRequest = {
+  loan: AprLoan;
+  /**
+   * Draft
+   */
+  draft: string;
+};
+
+/**
  * LocationRead
  */
 export type LocationRead = {
@@ -237,6 +303,32 @@ export type LocationUpdate = {
    * Jurisdiction Id
    */
   jurisdiction_id: number;
+};
+
+/**
+ * PayoffPlan
+ */
+export type PayoffPlan = {
+  /**
+   * Extra Monthly
+   */
+  extra_monthly: number;
+  /**
+   * Months Now
+   */
+  months_now: number;
+  /**
+   * Months With Extra
+   */
+  months_with_extra: number;
+  /**
+   * Months Sooner
+   */
+  months_sooner: number;
+  /**
+   * Interest Saved
+   */
+  interest_saved: number;
 };
 
 /**
@@ -277,7 +369,7 @@ export type ProgramMatch = {
   /**
    * Application Status
    */
-  application_status: "in-progress" | "complete";
+  application_status: "in-progress" | "complete" | "not-applicable";
 };
 
 /**
@@ -1169,6 +1261,40 @@ export type GetMyProgramMatchesResponses = {
 
 export type GetMyProgramMatchesResponse =
   GetMyProgramMatchesResponses[keyof GetMyProgramMatchesResponses];
+
+export type GetMyAprImpactData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/finance/me/apr-impact";
+};
+
+export type GetMyAprImpactResponses = {
+  /**
+   * Successful Response
+   */
+  200: AprImpact;
+};
+
+export type GetMyAprImpactResponse =
+  GetMyAprImpactResponses[keyof GetMyAprImpactResponses];
+
+export type DraftMyLenderRequestData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/finance/me/lender-request";
+};
+
+export type DraftMyLenderRequestResponses = {
+  /**
+   * Successful Response
+   */
+  200: LenderRequest;
+};
+
+export type DraftMyLenderRequestResponse =
+  DraftMyLenderRequestResponses[keyof DraftMyLenderRequestResponses];
 
 export type SetMyApplicationStatusData = {
   body: ApplicationStatusUpdate;

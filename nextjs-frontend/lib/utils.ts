@@ -9,7 +9,9 @@ export function cn(...inputs: ClassValue[]) {
 export function getErrorMessage(
   error: RegisterRegisterError | AuthJwtLoginError,
 ): string {
-  let errorMessage = "An unknown error occurred";
+  // No detail means the request never got an answer (e.g. the backend is down).
+  let errorMessage =
+    "Equa can't reach the server right now. Please try again in a moment.";
 
   if (typeof error.detail === "string") {
     // If detail is a string, use it directly

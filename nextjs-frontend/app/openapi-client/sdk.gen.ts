@@ -62,6 +62,10 @@ import type {
   GetMyProgramMatchesData,
   GetMyProgramMatchesResponses,
   GetMyProgramMatchesErrors,
+  GetMyAprImpactData,
+  GetMyAprImpactResponses,
+  DraftMyLenderRequestData,
+  DraftMyLenderRequestResponses,
   SetMyApplicationStatusData,
   SetMyApplicationStatusResponses,
   SetMyApplicationStatusErrors,
@@ -529,8 +533,56 @@ export const getMyProgramMatches = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get My Apr Impact
+ * The user's highest-APR debt, what it costs, and how utility help could pay it down.
+ */
+export const getMyAprImpact = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMyAprImpactData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetMyAprImpactResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/apr-impact",
+    ...options,
+  });
+};
+
+/**
+ * Draft My Lender Request
+ * Equa (Gemini) drafts a rate-reduction / deferment request for the highest-APR loan.
+ */
+export const draftMyLenderRequest = <ThrowOnError extends boolean = false>(
+  options?: Options<DraftMyLenderRequestData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    DraftMyLenderRequestResponses,
+    unknown,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/finance/me/lender-request",
+    ...options,
+  });
+};
+
+/**
  * Set My Application Status
- * Mark a matched program's application as in progress or complete.
+ * Mark a matched program's application as in progress, complete, or not applicable.
  */
 export const setMyApplicationStatus = <ThrowOnError extends boolean = false>(
   options: Options<SetMyApplicationStatusData, ThrowOnError>,
