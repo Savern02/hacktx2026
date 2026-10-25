@@ -43,6 +43,7 @@ def short_reason(text: str | None, limit: int = REASON_MAX_CHARS) -> str:
         cut = trimmed
     return cut.rstrip(".!?") + "…"
 
+
 TOOL_SCHEMA: dict[str, Any] = {
     "type": "object",
     "required": ["summary", "recommendations"],

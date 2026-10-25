@@ -1282,9 +1282,24 @@ export type GetMyAprImpactResponse =
 export type DraftMyLenderRequestData = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * Goal
+     */
+    goal?: "rate" | "deferment";
+  };
   url: "/finance/me/lender-request";
 };
+
+export type DraftMyLenderRequestErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DraftMyLenderRequestError =
+  DraftMyLenderRequestErrors[keyof DraftMyLenderRequestErrors];
 
 export type DraftMyLenderRequestResponses = {
   /**

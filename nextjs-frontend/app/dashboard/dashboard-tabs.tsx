@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import {
+  Car,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -22,13 +23,15 @@ import { AprDashboard } from "@/components/dashboard/apr-dashboard";
 import { SafeToSpendRing } from "@/components/dashboard/safe-to-spend-ring";
 import { clearCache } from "@/lib/data-cache";
 import { PlanTab } from "@/components/dashboard/plan-tab";
+import { ToyotaTab } from "@/components/dashboard/toyota-tab";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { MoneyCheckup } from "@/components/dashboard/money-checkup";
 import { ProgramMatches } from "@/components/dashboard/program-matches";
 
 function OverviewTab() {
   return (
-    <div className="grid gap-6">
+    // One centered column: easier to read, especially on phones.
+    <div className="mx-auto grid w-full max-w-3xl gap-8 text-center">
       <SafeToSpendRing />
       <MoneyCheckup />
       <AprDashboard />
@@ -52,6 +55,12 @@ const TABS: SidebarTab[] = [
     label: "Plan",
     icon: Route,
     content: <PlanTab />,
+  },
+  {
+    id: "toyota",
+    label: "My Toyota",
+    icon: Car,
+    content: <ToyotaTab />,
   },
   {
     id: "programs",

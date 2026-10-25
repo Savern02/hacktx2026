@@ -82,12 +82,15 @@ export async function fetchAprImpact(): Promise<Result<AprImpact>> {
   return { data };
 }
 
-export async function draftLenderRequest(): Promise<
-  { data: LenderRequest } | { message: string }
-> {
+export async function draftLenderRequest(
+  goal: "rate" | "deferment" = "rate",
+): Promise<{ data: LenderRequest } | { message: string }> {
   const headers = await authHeaders();
   if (!headers) return { message: "Please log in again." };
-  const { data, error } = await draftMyLenderRequest({ headers });
+  const { data, error } = await draftMyLenderRequest({
+    headers,
+    query: { goal },
+  });
   if (error || !data) {
     return {
       message: "Equa couldn't write the request just now. Let's try again.",

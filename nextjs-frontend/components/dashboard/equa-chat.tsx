@@ -5,6 +5,7 @@ import { SendHorizontal } from "lucide-react";
 
 import { sendChat } from "@/components/actions/chat-action";
 import { cn } from "@/lib/utils";
+import { useFirstName } from "@/lib/use-first-name";
 
 // `failed` marks Equa's error notices, which aren't sent back to the AI.
 type Message = {
@@ -17,13 +18,19 @@ type Message = {
 // The backend accepts at most 40 messages of history.
 const MAX_HISTORY = 40;
 
-const GREETING =
-  "Hi, I'm Equa! Have a problem? Tell me what's going on and we'll figure out the next step together.";
+function greeting(firstName?: string) {
+  return `Hi${firstName ? ` ${firstName}` : ""}, I'm Equa! Have a problem? Tell me what's going on and we'll figure out the next step together.`;
+}
 
 export function EquaChat() {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 0, from: "equa", text: GREETING },
-  ]);
+  const firstName = useFirstName();
+  // The greeting is derived, not stored, so it picks up the name once the
+  // profile loads (or after it's changed in Settings).
+  const [sent, setSent] = useState<Message[]>([]);
+  const messages: Message[] = [
+    { id: 0, from: "equa", text: greeting(firstName) },
+    ...sent,
+  ];
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
   const endRef = useRef<HTMLLIElement>(null);
@@ -46,7 +53,7 @@ export function EquaChat() {
       ...messages,
       { id: messages.length, from: "user", text },
     ];
-    setMessages(next);
+    setSent(next.slice(1));
     setDraft("");
     setTyping(true);
 
@@ -56,11 +63,12 @@ export function EquaChat() {
       .map((m) => ({ role: m.from, text: m.text }));
     const result = await sendChat(history);
 
-    setMessages((m) => [
+    // ids start at 1 because the greeting is id 0.
+    setSent((m) => [
       ...m,
       "reply" in result
-        ? { id: m.length, from: "equa", text: result.reply }
-        : { id: m.length, from: "equa", text: result.message, failed: true },
+        ? { id: m.length + 1, from: "equa", text: result.reply }
+        : { id: m.length + 1, from: "equa", text: result.message, failed: true },
     ]);
     setTyping(false);
     inputRef.current?.focus();

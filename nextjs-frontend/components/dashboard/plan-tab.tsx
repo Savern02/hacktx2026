@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CACHE_KEYS, peekCached, setCached, useCached } from "@/lib/data-cache";
 import { cn } from "@/lib/utils";
+import { useFirstName } from "@/lib/use-first-name";
 
 gsap.registerPlugin(useGSAP);
 
@@ -386,6 +387,7 @@ export function PlanTab({
   onReject?: (step: PlanStep) => void;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
+  const firstName = useFirstName();
   const [decisions, setDecisions] = useCachedState<Decisions>(
     CACHE_KEYS.planDecisions,
     {},
@@ -542,7 +544,8 @@ export function PlanTab({
           <CompletedDrawer steps={completedSteps} onReopen={reopenStep} />
         </div>
         <p className="text-sm text-muted-foreground">
-          Here&apos;s a calm path forward. Scroll to move through it, and tell
+          Here&apos;s a calm path forward
+          {firstName ? `, ${firstName}` : ""}. Scroll to move through it, and tell
           Equa if a step doesn&apos;t work for you.
         </p>
         {!stepsOverride && !ready ? (

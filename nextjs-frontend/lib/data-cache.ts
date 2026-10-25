@@ -18,6 +18,7 @@ export const CACHE_KEYS = {
   health: "health",
   aprImpact: "apr-impact",
   lenderRequest: "lender-request",
+  deferRequest: "defer-request",
   programMatches: "program-matches",
   profile: "profile",
   planDecisions: "plan-decisions",

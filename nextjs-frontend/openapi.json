@@ -1028,8 +1028,29 @@
           "finance"
         ],
         "summary": "Draft My Lender Request",
-        "description": "Equa (Gemini) drafts a rate-reduction / deferment request for the highest-APR loan.",
+        "description": "Equa (Gemini) drafts a rate-reduction or deferment request for the highest-APR loan.",
         "operationId": "draft_my_lender_request",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "goal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "rate",
+                "deferment"
+              ],
+              "type": "string",
+              "default": "rate",
+              "title": "Goal"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1040,13 +1061,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/finance/me/applications/{program_id}": {

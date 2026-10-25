@@ -153,3 +153,23 @@ async def test_lender_request_draft_uses_only_given_facts(
         "Never invent" in seen["system"]
         and "keep this only if it's true" in seen["system"]
     )
+
+
+async def test_lender_request_can_ask_for_a_deferment(
+    test_client, db_session, authenticated_user, fake_bank, monkeypatch
+):
+    await _connect(db_session, authenticated_user["user"])
+    seen = {}
+
+    async def fake_reply(system_prompt, messages):
+        seen["system"] = system_prompt
+        return "Hello Toyota, ..."
+
+    monkeypatch.setattr(gemini_service, "generate_reply", fake_reply)
+    h = authenticated_user["headers"]
+    r = await test_client.post("/finance/me/lender-request?goal=deferment", headers=h)
+    assert r.status_code == 200
+    assert "one-month payment extension" in seen["system"]
+    assert "{ask}" not in seen["system"]
+    bad = await test_client.post("/finance/me/lender-request?goal=forgive", headers=h)
+    assert bad.status_code == 422

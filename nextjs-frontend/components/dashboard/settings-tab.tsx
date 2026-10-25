@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CACHE_KEYS, invalidate, setCached, useCached } from "@/lib/data-cache";
+import { firstNameOf, useFirstName } from "@/lib/use-first-name";
 
 type Notice = { tone: "ok" | "error"; text: string } | null;
 
@@ -44,6 +45,7 @@ function SettingsForm({ profile }: { profile: UserRead }) {
   const [connecting, setConnecting] = useState(false);
   const [profileNotice, setProfileNotice] = useState<Notice>(null);
   const [bankNotice, setBankNotice] = useState<Notice>(null);
+  const firstName = useFirstName();
 
   const setProfile = (update: (p: UserRead) => UserRead) =>
     setCached<ProfileResult>(CACHE_KEYS.profile, (prev) =>
@@ -65,7 +67,12 @@ function SettingsForm({ profile }: { profile: UserRead }) {
       }
       setProfile(() => result.data);
       setFieldErrors({});
-      setProfileNotice({ tone: "ok", text: "Saved! Equa will remember that." });
+      // Greet by the name just saved, not the one cached before it.
+      const savedFirst = firstNameOf(result.data.full_name);
+      setProfileNotice({
+        tone: "ok",
+        text: `Saved! Equa will remember that${savedFirst ? `, ${savedFirst}` : ""}.`,
+      });
     } else {
       setFieldErrors(result.fieldErrors ?? {});
       setProfileNotice({ tone: "error", text: result.message });
@@ -85,11 +92,12 @@ function SettingsForm({ profile }: { profile: UserRead }) {
         CACHE_KEYS.health,
         CACHE_KEYS.aprImpact,
         CACHE_KEYS.lenderRequest,
+        CACHE_KEYS.deferRequest,
         CACHE_KEYS.programMatches,
       );
       setBankNotice({
         tone: "ok",
-        text: "You're connected! Equa loaded 8 weeks of sample transactions. Check Overview for your money check-up.",
+        text: `You're connected${firstName ? `, ${firstName}` : ""}! Equa loaded 8 weeks of sample transactions. Check Overview for your money check-up.`,
       });
     } else {
       setBankNotice({ tone: "error", text: result.message });

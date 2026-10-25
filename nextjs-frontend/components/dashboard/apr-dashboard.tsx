@@ -65,7 +65,7 @@ function AprHero({ data }: { data: AprImpact }) {
     <section
       data-apr-animate
       aria-labelledby="apr-heading"
-      className="grid gap-5 rounded-2xl bg-primary p-6 text-primary-foreground sm:grid-cols-[auto,1fr] sm:items-center sm:gap-8 sm:p-8"
+      className="grid justify-items-center gap-5 rounded-2xl bg-primary p-6 text-center text-primary-foreground sm:p-8"
     >
       <div>
         <p
@@ -92,7 +92,7 @@ function AprHero({ data }: { data: AprImpact }) {
           {loan.apr_basis}. Check your statement for the exact rate.
         </p>
       </div>
-      <div className="grid gap-3">
+      <div className="grid w-full max-w-md gap-3">
         <p className="text-lg leading-snug">
           This rate costs you about{" "}
           <span className="font-bold underline decoration-2 underline-offset-4">
@@ -167,7 +167,7 @@ function LenderCard({ data }: { data: AprImpact }) {
 
   return (
     <Card data-apr-animate className="flex flex-col">
-      <CardHeader className="flex-row items-start gap-3 space-y-0">
+      <CardHeader className="flex-col items-center gap-3 space-y-0 text-center">
         <span className={ICON_CHIP}>
           <Handshake className="h-5 w-5" aria-hidden="true" />
         </span>
@@ -205,7 +205,7 @@ function LenderCard({ data }: { data: AprImpact }) {
           </p>
         </CardContent>
       ) : null}
-      <CardFooter className="mt-auto flex flex-wrap gap-2">
+      <CardFooter className="mt-auto flex flex-wrap justify-center gap-2">
         {draft ? (
           <Button onClick={copy} className={ACTION_BUTTON}>
             {copied ? (
@@ -237,7 +237,7 @@ function GrantCard({ data }: { data: AprImpact }) {
   if (!loan || !plan) return null;
   return (
     <Card data-apr-animate className="flex flex-col">
-      <CardHeader className="flex-row items-start gap-3 space-y-0">
+      <CardHeader className="flex-col items-center gap-3 space-y-0 text-center">
         <span className={ICON_CHIP}>
           <Zap className="h-5 w-5" aria-hidden="true" />
         </span>
@@ -265,7 +265,7 @@ function GrantCard({ data }: { data: AprImpact }) {
           </CardDescription>
         </div>
       </CardHeader>
-      <CardFooter className="mt-auto">
+      <CardFooter className="mt-auto justify-center text-center">
         {program?.application_url ? (
           <Button asChild className={ACTION_BUTTON}>
             <a

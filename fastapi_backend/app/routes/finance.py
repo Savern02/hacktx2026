@@ -1,6 +1,7 @@
 """Money check-up (50/30/20, 28/36) from Nessie, and Equa's program matches."""
 
 import re
+from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -205,15 +206,22 @@ Rules:
 - Use only the facts given. Never invent account numbers, dates, payment history, income or hardship details.
 - Where a fact is needed but not given, leave a bracketed placeholder, e.g. [your account number].
 - Include the line "[I have made every payment on time — keep this only if it's true]".
-- Ask for: a lower APR, and if that's not possible, a hardship or penalty-free deferment option.
+- {ask}
 - Plain, confident, friendly. Under 170 words. Plain text, no markdown. Start with "Hello" and end with the person's name."""
+
+
+LENDER_ASKS = {
+    "rate": "Ask for: a lower APR, and if that's not possible, a hardship or penalty-free deferment option.",
+    "deferment": "Ask for: a one-month payment extension (a temporary-hardship deferral that moves this payment to the end of the loan), and ask whether it adds any charges, how it is reported to credit bureaus, and what other hardship options are available.",
+}
 
 
 @router.post("/me/lender-request", response_model=LenderRequest)
 async def draft_my_lender_request(
+    goal: Literal["rate", "deferment"] = Query(default="rate"),
     user: User = Depends(current_active_user),
 ):
-    """Equa (Gemini) drafts a rate-reduction / deferment request for the highest-APR loan."""
+    """Equa (Gemini) drafts a rate-reduction or deferment request for the highest-APR loan."""
     try:
         loans = await service.get_apr_loans(user)
     except service.NotConnected:
@@ -239,7 +247,7 @@ async def draft_my_lender_request(
     )
     try:
         draft = await gemini_service.generate_reply(
-            LENDER_REQUEST_PROMPT,
+            LENDER_REQUEST_PROMPT.replace("{ask}", LENDER_ASKS[goal]),
             [ChatMessage(role="user", text=f"Write the message.\n\n{facts}")],
         )
     except gemini_service.GeminiError:

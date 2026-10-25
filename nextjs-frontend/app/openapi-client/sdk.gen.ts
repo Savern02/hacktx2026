@@ -66,6 +66,7 @@ import type {
   GetMyAprImpactResponses,
   DraftMyLenderRequestData,
   DraftMyLenderRequestResponses,
+  DraftMyLenderRequestErrors,
   SetMyApplicationStatusData,
   SetMyApplicationStatusResponses,
   SetMyApplicationStatusErrors,
@@ -558,14 +559,14 @@ export const getMyAprImpact = <ThrowOnError extends boolean = false>(
 
 /**
  * Draft My Lender Request
- * Equa (Gemini) drafts a rate-reduction / deferment request for the highest-APR loan.
+ * Equa (Gemini) drafts a rate-reduction or deferment request for the highest-APR loan.
  */
 export const draftMyLenderRequest = <ThrowOnError extends boolean = false>(
   options?: Options<DraftMyLenderRequestData, ThrowOnError>,
 ) => {
   return (options?.client ?? client).post<
     DraftMyLenderRequestResponses,
-    unknown,
+    DraftMyLenderRequestErrors,
     ThrowOnError
   >({
     responseType: "json",

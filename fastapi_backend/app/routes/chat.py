@@ -84,8 +84,14 @@ async def send_message(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    system_prompt = (
-        f"{EQUA_PROMPT}\n\nThe user's current finances:\n"
+    system_prompt = EQUA_PROMPT
+    if user.first_name:
+        system_prompt += (
+            f"\n\nThe user's first name is {user.first_name}. Use it now and then "
+            "to keep things warm and personal, but not in every message."
+        )
+    system_prompt += (
+        f"\n\nThe user's current finances:\n"
         f"{await build_user_context(session, user)}"
     )
     try:
