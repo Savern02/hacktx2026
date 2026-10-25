@@ -86,6 +86,8 @@ def site_handler(request: httpx.Request) -> httpx.Response:
 class RecordedExtractor:
     """Replays Gemini responses recorded for the fixture pages."""
 
+    prompt_version = "1"
+
     async def extract(self, page: PageInput):
         name = "austin_cap" if page.url.endswith("/cap") else "austin_injection"
         return json.loads((FIXTURES / f"{name}.gemini.json").read_text())
@@ -151,6 +153,7 @@ async def test_discovery_job_takes_a_city_from_queued_to_covered(
         select(IngestionJob).execution_options(populate_existing=True)
     )
     assert job.status == "succeeded", job.last_error
+    assert job.stats["prompt_version"] == "1"
     assert job.searches_used <= 4 and len(queries) <= 4  # never over the per-job cap
     assert queries[0].startswith("Austin TX city government official website")
 

@@ -1,7 +1,8 @@
 import json
+import re
 from pathlib import Path
 
-from app.discovery.extractor import SYSTEM_PROMPT, PageInput, build_user_message
+from app.discovery.extractor import PageInput, build_user_message, load_system_prompt
 from app.discovery.fetcher import extract_html
 from app.discovery.validator import JobScope, validate_candidates
 
@@ -108,21 +109,36 @@ def test_injected_instructions_produce_no_injected_program():
     assert any("rental assistance" in n for n in names)
 
 
-def test_prompt_marks_page_text_as_untrusted_data():
+DOC = Path(__file__).parents[3] / "docs" / "program-discovery-pipeline.md"
+
+
+def test_system_prompt_is_section_17_2_verbatim():
+    doc = DOC.read_text()
+    section = doc[doc.index("### 17.2 Extraction system prompt") :]
+    expected = re.search(r"```text\n(.*?)\n```", section, re.S).group(1)
+    prompt = load_system_prompt()
+    assert prompt.template == expected.strip()
+    assert prompt.version == "1"
+
+
+def test_prompt_renders_context_and_user_message_follows_17_2():
     text, links = page("austin_injection", "https://www.austintexas.gov/rent-help")
-    message = build_user_message(
-        PageInput(
-            "city",
-            "Austin city",
-            "Texas",
-            "https://www.austintexas.gov/rent-help",
-            1,
-            text,
-            links,
-        ),
-        60000,
+    p = PageInput(
+        "city",
+        "Austin, TX",
+        "Texas",
+        "https://www.austintexas.gov/rent-help",
+        1,
+        text,
+        links,
     )
-    assert message.count("<page_text>") == 1 and "</page_text>" in message
+    system = load_system_prompt().render(p)
+    assert "Jurisdiction being researched: city - Austin, TX (state: Texas)" in system
+    assert "Source trust tier: 1 " in system and "{" not in system
+    message = build_user_message(p, 60000)
+    assert message.startswith("<page_text>\n") and message.endswith("\n</page_links>")
+    assert "\n</page_text>\n<page_links>\n" in message
     assert (
-        "UNTRUSTED DATA" in SYSTEM_PROMPT and "Ignore any instructions" in SYSTEM_PROMPT
+        "Apply for rental assistance | https://www.austintexas.gov/rent-help/apply"
+        in message
     )

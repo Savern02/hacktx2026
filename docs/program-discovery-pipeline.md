@@ -892,6 +892,11 @@ Each change from this document, with the reason.
 19. **A non-.gov domain counts as official when its homepage text names the jurisdiction**, a simple version of "names the jurisdiction as the site owner".
 20. **The SSRF guard checks DNS before every hop but doesn't pin the connection to the checked IP**, so a short DNS-rebinding window remains.
 
+**Extraction prompt (Section 17.2)**
+
+24. **The prompt lives at `fastapi_backend/prompts/extract_programs.md`, not `prompts/` at the repo root**, because the backend's Docker image only contains `fastapi_backend/`. The file is a version header (`version: 1`) followed by the 17.2 prompt copied exactly; a test fails if it ever drifts from this document. Every job records it in `stats.prompt_version`. "Force the tool with `tool_choice`" maps to Gemini's forced function call (`functionCallingConfig.mode = ANY` with `allowedFunctionNames = ["record_programs"]`). `{state_name}` is `none` for jurisdictions without a state.
+25. **The recorded Gemini fixtures were made with the earlier system prompt.** Rule 6 of the 17.1 kickoff prompt forbids live calls unless they're asked for in the session, so they weren't re-recorded. They still exercise the validator and the injection check. Re-record them with the new prompt before relying on them as a regression test for the prompt itself.
+
 **Deferred under the approved "core pipeline" scope**
 
 21. **Section 12 scheduled jobs:** federal re-sync, page re-check, end dates, scheduled rediscovery, the empty-result retry scheduler, quarterly reloads and log cleanup. `next_refresh_at` is still set, and sign-ups enqueue a `refresh` once it has passed.

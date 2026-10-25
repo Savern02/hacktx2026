@@ -286,6 +286,7 @@ async def run_job(
         "inserted": 0,
         "updated": 0,
         "rejected": {},
+        "prompt_version": getattr(deps.extractor, "prompt_version", None),
     }
     outcome = JobOutcome(stats=stats)
 
@@ -446,8 +447,10 @@ async def run_job(
         raw = await deps.extractor.extract(
             PageInput(
                 jurisdiction.level,
-                jurisdiction.name,
-                state.name if state else None,
+                jurisdiction.display_name,
+                jurisdiction.name
+                if jurisdiction.level == "state"
+                else (state.name if state else None),
                 url,
                 tier,
                 page.text,
